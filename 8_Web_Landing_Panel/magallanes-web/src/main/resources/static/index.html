@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Magallanes-Montero Abogados · Lima</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ===================== ENCABEZADO ===================== -->
+<header class="cabecera">
+  <div class="contenedor">
+    <a class="logo" href="#inicio"><span class="logo-mm">MM</span><span><b>Magallanes-Montero</b><small>ABOGADOS</small></span></a>
+    <nav class="menu">
+      <a href="#areas">Áreas de práctica</a>
+      <a href="#pasos">Cómo trabajamos</a>
+      <a href="#socios">Nosotros</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <a class="btn btn-oro" href="#contacto">Cuéntenos su caso</a>
+    <!-- Ícono de acceso al panel administrativo (W02 · login contra la tabla USUARIO) -->
+    <a class="candado" href="panel/login.html" aria-label="Acceso al panel">
+      <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <span class="tip">Acceso al panel</span>
+    </a>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="inicio">
+  <div class="contenedor">
+    <div>
+      <h1>Defendemos lo que<br><span>más le importa.</span></h1>
+      <p>Asesoría legal en civil, familia, laboral, penal y empresas. Un abogado revisa su consulta y le responde por WhatsApp en menos de 24 horas.</p>
+      <div class="acciones">
+        <a class="btn btn-oro" href="#contacto">Cuéntenos su caso</a>
+        <a class="btn btn-borde" href="#areas">Ver áreas de práctica</a>
+      </div>
+      <div class="cifras">
+        <div><b>+15</b><span>años de experiencia</span></div>
+        <div><b>98 %</b><span>casos con seguimiento al día</span></div>
+        <div><b>24 h</b><span>primera respuesta</span></div>
+      </div>
+    </div>
+    <aside class="urgencia">
+      <h3>¿Tiene una urgencia legal?</h3>
+      <small>Audiencia próxima, notificación o plazo por vencer.</small>
+      <ul>
+        <li>Revisamos su caso el mismo día</li>
+        <li>Le decimos si hay conflicto de interés</li>
+        <li>Propuesta de honorarios clara, por escrito</li>
+        <li>Siga su expediente en el portal del cliente</li>
+      </ul>
+      <a class="btn btn-navy" href="#contacto" onclick="marcarUrgente()">Escribir mi caso urgente</a>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================== ÁREAS (tabla MATERIA) ===================== -->
+<section class="seccion" id="areas">
+  <div class="contenedor">
+    <div class="titulo-centro">
+      <div class="etiqueta-seccion">Áreas de práctica</div>
+      <h2>¿En qué podemos ayudarle?</h2>
+      <span class="bd">SELECT materia.nombre, materia.descripcion</span>
+    </div>
+    <div class="grid-areas" id="areas-lista"><p>Cargando áreas…</p></div>
+  </div>
+</section>
+
+<!-- ===================== PASOS ===================== -->
+<section class="seccion pasos-fondo" id="pasos">
+  <div class="contenedor">
+    <div class="titulo-centro">
+      <div class="etiqueta-seccion">Cómo trabajamos</div>
+      <h2>De su consulta a su expediente, en 4 pasos</h2>
+    </div>
+    <div class="pasos">
+      <div class="paso"><div class="num">1</div><h3>Consulta</h3><p>Nos cuenta su caso aquí o por WhatsApp.</p><span class="bd">consulta</span></div>
+      <div class="paso"><div class="num">2</div><h3>Evaluación</h3><p>Revisamos conflictos y agendamos su cita.</p><span class="bd">cita</span></div>
+      <div class="paso"><div class="num">3</div><h3>Propuesta</h3><p>Honorarios claros y contrato firmado.</p><span class="bd">propuesta · contrato</span></div>
+      <div class="paso"><div class="num">4</div><h3>Expediente</h3><p>Abrimos su caso y lo sigue en el portal.</p><span class="bd">caso</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SOCIOS (EMPLEADO + ABOGADO + ABOGADO_MATERIA) ===================== -->
+<section class="seccion" id="socios">
+  <div class="contenedor">
+    <div class="etiqueta-seccion">Nosotros</div>
+    <h2 style="color:var(--navy);font-size:32px">Socios del estudio</h2>
+    <p style="color:var(--muted);margin-top:0">Abogados colegiados con experiencia en litigio y asesoría preventiva.</p>
+    <div class="grid-socios" id="socios-lista"><p>Cargando…</p></div>
+    <span class="bd">empleado.nombres</span> <span class="bd">abogado.nro_colegiatura</span> <span class="bd">abogado_materia.id_materia</span>
+  </div>
+</section>
+
+<!-- ===================== FORMULARIO «CUÉNTENOS SU CASO» (transacción T1) ===================== -->
+<section class="seccion contacto" id="contacto">
+  <div class="contenedor">
+    <div>
+      <div class="etiqueta-seccion">Cuéntenos su caso</div>
+      <h2>Primera evaluación<br><span>sin compromiso</span></h2>
+      <p>Complete el formulario y un abogado le escribirá por WhatsApp en menos de 24 horas.</p>
+      <div class="dato"><i></i><div><small>Dirección</small><span>Av. Arequipa 1830, Lince, Lima</span></div></div>
+      <div class="dato"><i></i><div><small>Teléfono</small><span>(01) 456 7890</span></div></div>
+      <div class="dato"><i></i><div><small>Horario</small><span>Lun a vie 9:00 – 18:00 · sáb 9:00 – 13:00</span></div></div>
+      <div class="caja-registro">
+        <b>Al enviar se registra (una sola transacción):</b>
+        PERSONA (si es nueva) → CONSULTA (canal LANDING, estado RECIBIDA) → CONSULTA_CONTRAPARTE → NOTIFICACION por WhatsApp (CONFIRMACION_CONSULTA).
+      </div>
+    </div>
+
+    <div class="form-tarjeta">
+      <div id="form-zona">
+        <h3>Formulario de consulta</h3>
+        <small>Los campos con * son obligatorios</small>
+        <form id="form-consulta" novalidate>
+          <div class="fila">
+            <div class="campo"><label for="nombres">Nombres *</label><input id="nombres" maxlength="80" autocomplete="given-name"><span class="msg"></span><span class="bd">persona.nombres</span></div>
+            <div class="campo"><label for="apellidos">Apellidos *</label><input id="apellidos" maxlength="80" autocomplete="family-name"><span class="msg"></span><span class="bd">persona.apellidos</span></div>
+          </div>
+          <div class="fila f3">
+            <div class="campo"><label for="tipoDocumento">Tipo doc. *</label>
+              <select id="tipoDocumento"><option>DNI</option><option>CE</option><option>PASAPORTE</option></select><span class="bd">persona.tipo_documento</span></div>
+            <div class="campo"><label for="nroDocumento">Número *</label><input id="nroDocumento" maxlength="15" inputmode="numeric"><span class="msg"></span><span class="bd">persona.nro_documento</span></div>
+            <div class="campo"><label for="telefono">Celular (WhatsApp) *</label><input id="telefono" maxlength="20" inputmode="tel" placeholder="9xx xxx xxx"><span class="msg"></span><span class="bd">persona.telefono</span></div>
+          </div>
+          <div class="fila">
+            <div class="campo"><label for="email">Correo</label><input id="email" type="email" maxlength="120"><span class="msg"></span><span class="bd">persona.email</span></div>
+            <div class="campo"><label for="idMateria">Materia *</label><select id="idMateria"><option value="">Seleccione…</option></select><span class="msg"></span><span class="bd">consulta.id_materia → materia</span></div>
+          </div>
+          <div class="fila f1">
+            <div class="campo"><label for="resumen">Cuéntenos qué pasó * <span class="contador" id="contador">0 / 500</span></label>
+              <textarea id="resumen" maxlength="500" placeholder="Describa brevemente su situación, fechas importantes y qué necesita."></textarea><span class="msg"></span><span class="bd">consulta.resumen</span></div>
+          </div>
+          <div class="fila f1">
+            <div class="campo"><label>¿Contra quién es el caso? (opcional)</label>
+              <div class="radios">
+                <label><input type="radio" name="cpTipo" value="" checked> No aplica / no sé</label>
+                <label><input type="radio" name="cpTipo" value="NATURAL"> Una persona</label>
+                <label><input type="radio" name="cpTipo" value="JURIDICA"> Una empresa o entidad</label>
+              </div>
+            </div>
+          </div>
+          <div class="fila" id="cp-natural" hidden>
+            <div class="campo"><label for="cpNombres">Nombres de la contraparte</label><input id="cpNombres" maxlength="80"><span class="msg"></span><span class="bd">persona.nombres (contraparte)</span></div>
+            <div class="campo"><label for="cpApellidos">Apellidos de la contraparte</label><input id="cpApellidos" maxlength="80"><span class="msg"></span><span class="bd">persona.apellidos (contraparte)</span></div>
+          </div>
+          <div class="fila f1" id="cp-juridica" hidden>
+            <div class="campo"><label for="cpRazon">Razón social de la empresa o entidad</label><input id="cpRazon" maxlength="150"><span class="msg"></span><span class="bd">persona.razon_social → consulta_contraparte</span></div>
+          </div>
+          <label class="check"><input type="checkbox" id="esUrgente"> Es urgente (tengo una audiencia o un plazo cercano) <span class="bd">consulta.es_urgente</span></label>
+          <label class="check"><input type="checkbox" id="aceptaDatos"> Acepto el tratamiento de mis datos personales (Ley 29733) * <span class="bd">persona.acepta_tratamiento_datos</span></label>
+          <div class="alerta" id="alerta"></div>
+          <button class="btn btn-oro" type="submit" id="btn-enviar">Enviar consulta</button>
+          <div class="nota-form">Respuesta por WhatsApp en menos de 24 horas</div>
+          <div style="margin-top:8px"><span class="bd">consulta.canal = 'LANDING'</span> <span class="bd">consulta.estado = 'RECIBIDA'</span> <span class="bd">notificacion.tipo_evento = 'CONFIRMACION_CONSULTA'</span></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SATISFACCIÓN (ENCUESTA) ===================== -->
+<section class="seccion" style="padding-top:48px;padding-bottom:48px">
+  <div class="contenedor">
+    <div class="satisf">
+      <b id="promedio">–</b><span class="estrellas" id="estrellas">★★★★★</span>
+      <span class="bd">AVG(encuesta.calificacion)</span>
+      <p id="satisf-texto">Calificación promedio de nuestros clientes al cerrar su caso (encuesta de satisfacción).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PIE ===================== -->
+<footer class="pie">
+  <div class="contenedor">
+    <div><a class="logo" href="#inicio"><span class="logo-mm">MM</span><span><b>Magallanes-Montero Abogados</b></span></a><p>Estudio jurídico · Lima, Perú</p></div>
+    <div><h4>Áreas</h4><div id="pie-areas"></div></div>
+    <div><h4>Estudio</h4><a href="#socios">Nosotros</a><a href="#pasos">Cómo trabajamos</a><a href="#contacto">Contacto</a></div>
+    <div><h4>Clientes</h4><a href="#contacto">Nueva consulta</a><a href="#">Portal del cliente</a><a href="#">Libro de reclamaciones</a></div>
+    <div><a class="btn-panel" href="panel/login.html">🔒 Panel del estudio</a></div>
+    <div class="final">© 2026 Magallanes-Montero Abogados · Proyecto Base de Datos II – UTP</div>
+  </div>
+</footer>
+
+<a class="wsp" href="#contacto" aria-label="Escribir">💬</a>
+<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
+
+<script src="js/landing.js"></script>
+</body>
+</html>

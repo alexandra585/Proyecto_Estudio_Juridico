@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T3 · Gestión del expediente · Magallanes-Montero</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+</head>
+<body class="panel">
+<div class="app">
+  <aside id="lateral" data-activo="t3"></aside>
+  <main class="principal">
+    <div class="titulo-pantalla">
+      <h1>T3 · Gestión del expediente</h1>
+      <p>W11 Nuevo escrito · W12 Registrar presentación · W13 Registrar resolución y plazo · <b>Responsable: Compañero 2</b></p>
+      <div class="chips"><span style="color:var(--verde)">GRABA</span><span class="chip g">DOCUMENTO_LEGAL</span><span class="chip g">DOCUMENTO_JURISPRUDENCIA</span><span class="chip g">PRESENTACION</span><span class="chip g">RESOLUCION</span><span class="chip g">PLAZO</span><span class="chip g">MongoDB: archivos</span><span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">CASO</span><span class="chip l">EMPLEADO</span><span class="chip l">ABOGADO</span><span class="chip l">JURISPRUDENCIA</span><span class="chip l">ENTIDAD</span><span class="chip l">FERIADO</span></div>
+    </div>
+    <div class="aviso amarillo" style="margin-top:16px"><b>Módulo en construcción.</b> La base (menú, estilos, conexión a SQL Server y MongoDB) ya está lista.
+      El código a completar está en <code>src/main/java/pe/edu/utp/magallanes/web/t3/</code> y la guía paso a paso en <code>docs/GUIA_COMPANERO_2_T3.md</code>.
+      Use como modelo la pantalla «W04 · Bandeja y W06 · Cita» (index.html + panel.js + CitaRepositorio.java).</div>
+
+    <div class="tarjeta">
+      <h2>Orden de la transacción (lo que debe grabar cada pantalla)</h2>
+      <table class="tabla mini"><thead><tr><th>Pantalla</th><th>Tabla / colección</th><th>Operación</th><th>Columnas</th></tr></thead><tbody><tr><td>W11</td><td><b>archivos (MongoDB)</b></td><td>insert</td><td><span class="bd">tipo ESCRITO, titulo, versiones[{v, autor, fecha, contenido_texto}]</span></td></tr><tr><td>W11</td><td><b>DOCUMENTO_LEGAL</b></td><td>INSERT</td><td><span class="bd">id_caso, id_redactor, tipo_documento, titulo, archivo_mongo_id</span></td></tr><tr><td>W11</td><td><b>DOCUMENTO_JURISPRUDENCIA</b></td><td>INSERT (n)</td><td><span class="bd">id_documento, id_jurisprudencia, nota</span></td></tr><tr><td>W12</td><td><b>PRESENTACION</b></td><td>INSERT</td><td><span class="bd">id_documento, id_entidad, id_empleado, fecha_hora, modalidad, nro_cargo</span></td></tr><tr><td>W12</td><td><b>DOCUMENTO_LEGAL</b></td><td>UPDATE</td><td><span class="bd">estado = &#x27;PRESENTADO&#x27;</span></td></tr><tr><td>W13</td><td><b>RESOLUCION</b></td><td>INSERT</td><td><span class="bd">id_caso, id_entidad, id_presentacion, tipo_resolucion, fecha_notificacion, medio_notificacion, archivo_mongo_id</span></td></tr><tr><td>W13</td><td><b>PLAZO</b></td><td>INSERT</td><td><span class="bd">id_caso, id_resolucion, id_empleado_responsable, descripcion, fecha_inicio, dias_plazo, tipo_computo, fecha_vencimiento</span></td></tr></tbody></table>
+      <p class="origen">Todo dentro de <code>cn.setAutoCommit(false)</code> … <code>cn.commit()</code>; si falla una regla (CHECK, FK, UNIQUE o trigger) → <code>cn.rollback()</code>.
+        Lo de MongoDB se guarda primero y, si SQL Server hace ROLLBACK, se borra (compensación con <code>MongoDocumentos.borrar</code>).</p>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Casos activos (combo de W11) <span style="font-weight:400;color:var(--muted);font-size:13px">· ejemplo que ya funciona (GET api/panel/t3/casos-activos)</span></h2>
+      <div style="overflow-x:auto"><table class="tabla mini" id="t-ejemplo"><tbody><tr><td class="vacio">Cargando…</td></tr></tbody></table></div>
+    </div>
+  </main>
+</div>
+<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
+<script src="../js/menu.js"></script>
+<script>
+(async () => {
+  const t = document.getElementById("t-ejemplo");
+  const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  try {
+    const r = await fetch("../api/panel/t3/casos-activos");
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || r.status);
+    if (!d.length) { t.innerHTML = '<tr><td class="vacio">Sin filas.</td></tr>'; return; }
+    const cols = Object.keys(d[0]);
+    t.innerHTML = "<thead><tr>" + cols.map((c) => "<th>" + esc(c) + "</th>").join("") + "</tr></thead><tbody>"
+      + d.map((f) => "<tr>" + cols.map((c) => "<td>" + esc(f[c]) + "</td>").join("") + "</tr>").join("") + "</tbody>";
+  } catch (e) { t.innerHTML = '<tr><td class="vacio" style="color:var(--rojo)">' + esc(e.message) + "</td></tr>"; }
+})();
+document.getElementById("toggle-bd").addEventListener("click", () => document.body.classList.toggle("sin-bd"));
+</script>
+</body>
+</html>

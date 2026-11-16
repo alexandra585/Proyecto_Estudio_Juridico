@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel del estudio · Iniciar sesión</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+</head>
+<body class="panel">
+<div class="login-fondo">
+  <section class="login-izq">
+    <a class="logo" href="../index.html"><span class="logo-mm">MM</span><span><b>Magallanes-Montero</b><small>ABOGADOS</small></span></a>
+    <h1 style="margin-top:40px">Panel del estudio<br><span style="color:var(--gold)">y portal del cliente</span></h1>
+    <p>Ingrese con la cuenta que le asignó el administrador. Desde el panel se atienden las consultas que llegan por la página web.</p>
+  </section>
+  <section class="login-der">
+    <form class="login-caja" id="form-login" novalidate>
+      <h2>Iniciar sesión</h2>
+      <small style="color:var(--muted)">W02 · se valida contra la tabla USUARIO</small>
+      <div class="campo"><label for="email">Correo</label><input id="email" type="email" autocomplete="username" placeholder="nombre@mmabogados.pe"><span class="bd">usuario.email</span></div>
+      <div class="campo"><label for="contrasena">Contraseña</label><input id="contrasena" type="password" autocomplete="current-password"><span class="bd">usuario.contrasena_hash (BCrypt)</span></div>
+      <div class="alerta" id="alerta"></div>
+      <button class="btn btn-oro" type="submit" id="btn">Ingresar</button>
+      <p style="font-size:12px;color:var(--muted);margin-top:16px">Al ingresar se actualiza <span class="bd">usuario.ultimo_acceso</span>. Las cuentas inactivas (<span class="bd">usuario.activo = 0</span>) no pueden entrar.</p>
+      <a href="../index.html" style="font-size:13px;color:var(--gold);font-weight:700">← Volver a la página web</a>
+    </form>
+  </section>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+$("form-login").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const a = $("alerta"); a.className = "alerta";
+  const b = $("btn"); b.disabled = true; b.textContent = "Validando…";
+  try {
+    const r = await fetch("../api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: $("email").value.trim(), contrasena: $("contrasena").value }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || "No se pudo iniciar sesión");
+    location.href = "index.html";
+  } catch (err) {
+    a.className = "alerta mal"; a.textContent = err.message;
+    b.disabled = false; b.textContent = "Ingresar";
+  }
+});
+</script>
+</body>
+</html>

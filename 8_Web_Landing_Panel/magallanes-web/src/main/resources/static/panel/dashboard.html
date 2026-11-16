@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard gerencial · Magallanes-Montero</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+</head>
+<body class="panel">
+<div class="app">
+  <aside id="lateral" data-activo="dashboard"></aside>
+  <main class="principal">
+    <div class="titulo-pantalla">
+      <h1>W03 · Dashboard gerencial</h1>
+      <p>Socios · Datos en vivo de SQL Server: todo se calcula con las vistas <b>vw_dash_*</b> (no se guardan totales: 3FN).
+        <span id="actualizado"></span> <button class="btn btn-sec" id="refrescar" type="button" style="padding:6px 12px;margin-left:8px">Actualizar</button></p>
+      <div class="chips"><span style="color:var(--azul)">LEE</span><span class="chip l">PAGO</span><span class="chip l">COMPROBANTE</span><span class="chip l">DETALLE_COMPROBANTE</span><span class="chip l">GASTO_CASO</span><span class="chip l">CUOTA</span><span class="chip l">CONTRATO</span><span class="chip l">CASO</span><span class="chip l">CONSULTA</span><span class="chip l">ENCUESTA</span><span class="chip l">PLAZO</span><span class="chip l">AUDIENCIA</span><span style="color:var(--verde);margin-left:8px">GRABA</span><span class="chip g">— (solo lectura)</span></div>
+    </div>
+    <div class="alerta" id="error"></div>
+
+    <!-- 1. Ganancias -->
+    <section class="kpis">
+      <div class="kpi verde"><small>Ingresos cobrados (sin IGV)</small><b id="k-ingresos">—</b><div class="det">Lo que ya entró a caja</div><span class="bd">Σ pago.monto ÷ (1 + comprobante.tasa_igv)</span></div>
+      <div class="kpi verde"><small>Ganancia neta</small><b id="k-ganancia">—</b><div class="det" id="k-margen">Margen —</div><span class="bd">ingresos − Σ gasto_caso.monto</span></div>
+      <div class="kpi"><small>Gastos de los casos</small><b id="k-gastos">—</b><div class="det">Tasas, cédulas, copias…</div><span class="bd">Σ gasto_caso.monto</span></div>
+      <div class="kpi rojo"><small>Por cobrar (con IGV)</small><b id="k-porcobrar">—</b><div class="det">Comprobantes pendientes</div><span class="bd">Σ vw_comprobante_saldo.saldo</span></div>
+      <div class="kpi"><small>Cuota litis liquidada</small><b id="k-litis">—</b><div class="det">Honorario de éxito</div><span class="bd">Σ vw_liquidacion_cuota_litis</span></div>
+      <div class="kpi"><small>Honorarios contratados</small><b id="k-contratados">—</b><div class="det" id="k-facturado">Facturado —</div><span class="bd">Σ propuesta.monto_honorarios (con contrato)</span></div>
+    </section>
+
+    <!-- 2. Alertas -->
+    <section class="alertas">
+      <div class="alerta-kpi"><div class="num" style="color:var(--navy)" id="a-casos">—</div><div><b>Casos activos</b><small>caso.estado = ACTIVO</small></div></div>
+      <div class="alerta-kpi"><div class="num" style="color:#E65100" id="a-plazos">—</div><div><b>Plazos por vencer o vencidos</b><small>vw_plazos_por_vencer (≤ 5 días)</small></div></div>
+      <div class="alerta-kpi"><div class="num" style="color:var(--rojo)" id="a-cuotas">—</div><div><b>Cuotas vencidas</b><small id="a-cuotas-monto">vw_cuota_estado = VENCIDA</small></div></div>
+      <div class="alerta-kpi"><div class="num" style="color:var(--azul)" id="a-aud">—</div><div><b>Audiencias próximos 7 días</b><small>audiencia.fecha_hora</small></div></div>
+    </section>
+
+    <!-- 3. Gráficos de dinero -->
+    <div class="grid-2">
+      <div class="tarjeta"><h2>Cobranza mensual (sin IGV)</h2><div class="grafico"><canvas id="g-mensual"></canvas></div>
+        <div class="origen"><span class="bd">vw_dash_cobranza_mensual: pago.fecha_pago agrupado por mes</span> ¿Para qué? Ver si el flujo de caja crece y en qué meses baja.</div></div>
+      <div class="tarjeta"><h2>Ganancia por materia</h2><div class="grafico"><canvas id="g-materia"></canvas></div>
+        <div class="origen"><span class="bd">vw_dash_rentabilidad_materia: pago → detalle → cuota → contrato → caso → materia, menos gasto_caso</span> ¿Para qué? Saber qué área de práctica deja más dinero.</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="tarjeta"><h2>Ganancia y carga por abogado</h2><div class="grafico"><canvas id="g-abogado"></canvas></div>
+        <table class="tabla mini" style="margin-top:10px"><thead><tr><th>Abogado</th><th>Ganancia</th><th>Casos activos</th><th>Plazos pendientes</th><th>Audiencias</th></tr></thead><tbody id="t-abogados"></tbody></table>
+        <div class="origen"><span class="bd">vw_dash_rentabilidad_abogado + vw_dash_carga_abogado</span> ¿Para qué? Repartir casos nuevos según la carga y medir el aporte de cada abogado.</div></div>
+      <div class="tarjeta"><h2>Embudo comercial y canales</h2><div class="grafico" style="height:200px"><canvas id="g-embudo"></canvas></div>
+        <div class="grafico" style="height:200px"><canvas id="g-canal"></canvas></div>
+        <div class="origen"><span class="bd">vw_dash_embudo (consulta → cita → propuesta → contrato) · vw_dash_consultas_canal</span> ¿Para qué? Ver cuántas consultas se convierten en clientes y cuánto aporta la Landing Page.</div></div>
+    </div>
+
+    <!-- 4. Operación y cliente -->
+    <div class="grid-2">
+      <div class="tarjeta"><h2>Plazos por vencer</h2>
+        <table class="tabla mini"><thead><tr><th>Expediente</th><th>Plazo</th><th>Vence</th><th>Días</th><th>Responsable</th></tr></thead><tbody id="t-plazos"></tbody></table>
+        <div class="origen"><span class="bd">vw_plazos_por_vencer (plazo + caso + empleado)</span> ¿Para qué? Que ningún plazo procesal venza sin atenderse (antes estaba en una agenda física).</div></div>
+      <div class="tarjeta"><h2>Cuotas vencidas y satisfacción</h2>
+        <table class="tabla mini"><thead><tr><th>Contrato</th><th>Cliente</th><th>Concepto</th><th>Monto</th><th>Venció</th></tr></thead><tbody id="t-cuotas"></tbody></table>
+        <div style="display:flex;gap:24px;align-items:center;margin-top:14px">
+          <div><small style="color:var(--muted)">Calificación promedio</small><div style="font-size:30px;font-weight:800;color:var(--navy)" id="s-prom">—</div></div>
+          <div><small style="color:var(--muted)">NPS</small><div style="font-size:30px;font-weight:800;color:var(--verde)" id="s-nps">—</div></div>
+          <div style="font-size:13px;color:var(--muted)" id="s-resp"></div>
+        </div>
+        <div class="origen"><span class="bd">vw_cuota_estado · vw_dash_satisfaccion (encuesta.calificacion, encuesta.nps)</span> Las respuestas completas de la encuesta están en MongoDB; aquí solo se usa el resumen guardado en SQL Server.</div></div>
+    </div>
+  </main>
+</div>
+<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
+<script src="../js/menu.js"></script>
+<script src="../js/chart.umd.js"></script>
+<script src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+VERSIÓN FINAL · 36 TABLAS · SQL Server 2022 (probada en SSMS 20)
+================================================================
+Resultado en SSMS: script y datos sin errores · 35/35 pruebas de reglas correctas
+36 tablas · 6 vistas · 10 triggers · 13 índices · 70 FK (2 compuestas) · 65 CHECK
+
+Orden de ejecución en SSMS:
+  1) 1_SQL_Server/magallanes_montero_sqlserver_v36.sql   (crea la BD; ojo: borra y recrea magallanes_montero)
+  2) 1_SQL_Server/magallanes_montero_datos_prueba_v36.sql (fechas relativas a hoy)
+  3) 1_SQL_Server/pruebas_reglas_v36.sql                  (opcional: 35 pruebas)
+
+Cambios respecto a la versión de 34 tablas:
+  - Nuevas tablas: USUARIO (login del panel y portal) y NOTIFICACION (avisos WhatsApp/correo/sistema).
+  - CONSULTA: id_secretaria -> id_registrado_por (opcional si llega por LANDING); id_revisor_conflicto -> ABOGADO.
+  - PERSONA: una contraparte puede no tener DNI/RUC (un cliente con contrato o comprobante sí).
+  - COMPROBANTE: estado solo EMITIDO/ANULADO; el estado de pago lo calcula vw_comprobante_saldo.
+  - Triggers nuevos: correlativo de serie, sentencia, coherencia del detalle, documento del cliente y del receptor.
+  - FERIADO: 16 feriados 2026. Datos de prueba con fechas relativas.
+  - Informe y Excel: 3FN de COMPROBANTE con SERIE_COMPROBANTE; Tabla 4 de PK corregida; figuras v36.
+  - Registro de cambios: son 2 FK compuestas (documento_legal y plazo), no 3.
+
+6_Mapa_Pantallas_Tablas: 30 ventanas del prototipo/Figma -> tablas. Las 36 tablas y las 6 vistas están cubiertas.
+
+VERSIONES ANTERIORES (30 tablas, MySQL y primer SQL Server). Muévelas a la carpeta VERSION_ANTERIOR_30_TABLAS:
+  - bdproyecto\SQL\  (completa: MySQL y SQLServer)
+  - bdproyecto\ACTUALIZADO\SQL_Server\
+  - bdproyecto\ACTUALIZADO\Prototipo\Prototipo_MM_Abogados.html (prototipo de 30 tablas; se rehará para 36)
