@@ -4,6 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Panel del estudio · Iniciar sesión</title>
   <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
 </head>
 <body class="panel">
 <div class="login-fondo">
@@ -15,7 +16,7 @@
   <section class="login-der">
     <form class="login-caja" id="form-login" novalidate>
       <h2>Iniciar sesión</h2>
-      <small style="color:var(--muted)">W02 · se valida contra la tabla USUARIO</small>
+      <small class="solo-tec" style="color:var(--muted)">W02 · se valida contra la tabla USUARIO</small>
       <div class="campo"><label for="email">Correo</label><input id="email" type="email" autocomplete="username" placeholder="nombre@mmabogados.pe"><span class="bd">usuario.email</span></div>
       <div class="campo"><label for="contrasena">Contraseña</label><input id="contrasena" type="password" autocomplete="current-password"><span class="bd">usuario.contrasena_hash (BCrypt)</span></div>
       <div class="alerta" id="alerta"></div>

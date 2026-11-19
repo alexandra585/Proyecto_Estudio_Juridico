@@ -2,23 +2,25 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>T2 · Contratación y apertura del expediente · Magallanes-Montero</title>
+  <title>W09 · Apertura del expediente · Magallanes-Montero</title>
   <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
 </head>
 <body class="panel">
 <div class="app">
   <aside id="lateral" data-activo="t2"></aside>
   <main class="principal">
     <div class="titulo-pantalla">
-      <h1>T2 · Contratación y apertura del expediente</h1>
-      <p>W07 Propuesta de honorarios · W08 Contrato y cronograma de cuotas · W09 Nuevo expediente · <b>Responsable: Compañero 1</b></p>
-      <div class="chips"><span style="color:var(--verde)">GRABA</span><span class="chip g">PROPUESTA</span><span class="chip g">CONTRATO</span><span class="chip g">CUOTA</span><span class="chip g">CASO</span><span class="chip g">CASO_PARTE</span><span class="chip g">CASO_ETAPA</span><span class="chip g">CONSULTA (estado)</span><span class="chip g">MongoDB: expedientes</span><span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">ABOGADO</span><span class="chip l">MATERIA</span><span class="chip l">ROL_PROCESAL</span><span class="chip l">ETAPA_PROCESAL</span></div>
+      <h1><span class="solo-tec">W09 · </span>Apertura del expediente</h1>
+      <p class="solo-tec">W09 Nuevo expediente (CASO + CASO_PARTE + CASO_ETAPA + MongoDB) · <b>Responsable: Compañero 1</b> · W07 y W08 ya funcionan: <a href="propuesta.html" style="color:var(--gold);font-weight:700">W07</a> · <a href="contrato.html" style="color:var(--gold);font-weight:700">W08</a></p>
+      <p class="solo-cli">Abrir el expediente del caso cuando el contrato ya está firmado.</p>
+      <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">PROPUESTA</span><span class="chip g">CONTRATO</span><span class="chip g">CUOTA</span><span class="chip g">CASO</span><span class="chip g">CASO_PARTE</span><span class="chip g">CASO_ETAPA</span><span class="chip g">CONSULTA (estado)</span><span class="chip g">MongoDB: expedientes</span><span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">ABOGADO</span><span class="chip l">MATERIA</span><span class="chip l">ROL_PROCESAL</span><span class="chip l">ETAPA_PROCESAL</span></div>
     </div>
     <div class="aviso amarillo" style="margin-top:16px"><b>Módulo en construcción.</b> La base (menú, estilos, conexión a SQL Server y MongoDB) ya está lista.
       El código a completar está en <code>src/main/java/pe/edu/utp/magallanes/web/t2/</code> y la guía paso a paso en <code>docs/GUIA_COMPANERO_1_T2.md</code>.
       Use como modelo la pantalla «W04 · Bandeja y W06 · Cita» (index.html + panel.js + CitaRepositorio.java).</div>
 
-    <div class="tarjeta">
+    <div class="tarjeta bd-bloque">
       <h2>Orden de la transacción (lo que debe grabar cada pantalla)</h2>
       <table class="tabla mini"><thead><tr><th>Pantalla</th><th>Tabla / colección</th><th>Operación</th><th>Columnas</th></tr></thead><tbody><tr><td>W07</td><td><b>PROPUESTA</b></td><td>INSERT</td><td><span class="bd">id_consulta, id_abogado, version, monto_honorarios, porcentaje_cuota_litis, nro_cuotas, fecha_envio</span></td></tr><tr><td>W07</td><td><b>CONSULTA</b></td><td>UPDATE</td><td><span class="bd">estado = &#x27;PROPUESTA&#x27;</span></td></tr><tr><td>W08</td><td><b>CONTRATO</b></td><td>INSERT</td><td><span class="bd">id_propuesta, id_cliente, nro_contrato, fecha_firma, tipo_encargo, modalidad_pago</span></td></tr><tr><td>W08</td><td><b>CUOTA</b></td><td>INSERT (n)</td><td><span class="bd">id_contrato, nro_cuota, concepto, monto, fecha_vencimiento</span></td></tr><tr><td>W09</td><td><b>expedientes (MongoDB)</b></td><td>insert</td><td><span class="bd">id_caso, codigo_interno, materia, resumen_hechos, etiquetas</span></td></tr><tr><td>W09</td><td><b>CASO</b></td><td>INSERT</td><td><span class="bd">id_contrato, id_materia, id_abogado_responsable, codigo_interno, descripcion, fecha_apertura, expediente_mongo_id</span></td></tr><tr><td>W09</td><td><b>CASO_PARTE</b></td><td>INSERT (n)</td><td><span class="bd">id_caso, id_persona, id_rol, tipo_parte</span></td></tr><tr><td>W09</td><td><b>CASO_ETAPA</b></td><td>INSERT</td><td><span class="bd">id_caso, id_etapa, fecha_inicio</span></td></tr></tbody></table>
       <p class="origen">Todo dentro de <code>cn.setAutoCommit(false)</code> … <code>cn.commit()</code>; si falla una regla (CHECK, FK, UNIQUE o trigger) → <code>cn.rollback()</code>.
@@ -31,7 +33,6 @@
     </div>
   </main>
 </div>
-<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
 <script src="../js/menu.js"></script>
 <script>
 (async () => {
@@ -47,7 +48,6 @@
       + d.map((f) => "<tr>" + cols.map((c) => "<td>" + esc(f[c]) + "</td>").join("") + "</tr>").join("") + "</tbody>";
   } catch (e) { t.innerHTML = '<tr><td class="vacio" style="color:var(--rojo)">' + esc(e.message) + "</td></tr>"; }
 })();
-document.getElementById("toggle-bd").addEventListener("click", () => document.body.classList.toggle("sin-bd"));
 </script>
 </body>
 </html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>W07 · Propuesta de honorarios · Magallanes-Montero</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
+</head>
+<body class="panel">
+<div class="app">
+  <aside id="lateral" data-activo="w07"></aside>
+
+  <main class="principal">
+    <div class="titulo-pantalla">
+      <h1><span class="solo-tec">W07 · </span>Propuesta de honorarios</h1>
+      <p class="solo-tec">Abogado · Proceso P1 · Transacción T2 · Después de la cita, el abogado envía al cliente cuánto cobrará y en cuántas cuotas.</p>
+      <p class="solo-cli">Después de la cita, el abogado envía al cliente cuánto cobrará y en cuántas cuotas.</p>
+      <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">PROPUESTA</span><span class="chip g">PROPUESTA (versión anterior → EN_NEGOCIACION)</span><span class="chip g">CONSULTA (estado)</span>
+        <span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">MATERIA</span><span class="chip l">CITA</span><span class="chip l">ABOGADO_MATERIA</span></div>
+    </div>
+
+    <!-- ============ Paso 1 · Elegir la consulta ============ -->
+    <div class="tarjeta">
+      <h2><span class="paso">1</span> Consultas que ya tuvieron cita</h2>
+      <div style="overflow-x:auto"><table class="tabla mini">
+        <thead><tr><th>N.°</th><th>Cliente</th><th>Documento</th><th>Materia</th><th>Canal</th><th>Última cita</th><th>Estado</th><th>Propuestas</th></tr></thead>
+        <tbody id="consultas"><tr><td colspan="8" class="vacio">Cargando…</td></tr></tbody>
+      </table></div>
+      <div class="fila-bd bd">consulta (estado AGENDADA, ATENDIDA o PROPUESTA y sin propuesta ACEPTADA) ⋈ persona ⋈ materia · última cita (cita.fecha_hora) · MAX(propuesta.version)</div>
+    </div>
+
+    <!-- ============ Paso 2 · Propuesta ============ -->
+    <form class="tarjeta" id="form-propuesta" novalidate hidden>
+      <h2><span class="paso">2</span> Propuesta para la consulta N.° <span id="p-consulta"></span></h2>
+      <div class="dos-col">
+        <div class="detalle">
+          <dl>
+            <dt>Cliente</dt><dd id="p-cliente"></dd>
+            <dt>Materia</dt><dd><span id="p-materia"></span> <span class="bd">consulta.id_materia → materia</span></dd>
+            <dt>Relato</dt><dd id="p-resumen"></dd>
+            <dt>Versión</dt><dd><b id="p-version"></b> <span class="bd">propuesta.version = MAX(version) + 1 · UNIQUE (id_consulta, version)</span></dd>
+          </dl>
+          <div class="aviso amarillo" id="p-aviso-version" hidden>Ya hay una propuesta enviada: al grabar, esa versión pasa a «en negociación» y esta nueva queda como la vigente.</div>
+        </div>
+        <div>
+          <div class="campo"><label for="abogado">Abogado responsable *</label><select id="abogado"></select>
+            <span class="bd">propuesta.id_abogado → abogado (debe atender la materia: abogado_materia)</span></div>
+          <div class="fila">
+            <div class="campo"><label for="honorarios">Honorarios S/ *</label><input id="honorarios" type="number" min="0" step="0.01" placeholder="0 = pro bono">
+              <span class="bd">propuesta.monto_honorarios (CHECK ≥ 0)</span></div>
+            <div class="campo"><label for="cuotas">N.° de cuotas *</label><input id="cuotas" type="number" min="1" max="24" value="2">
+              <span class="bd">propuesta.nro_cuotas</span></div>
+          </div>
+          <div class="campo" style="margin-top:12px"><label for="litis">Cuota litis (% del monto que se gane)</label><input id="litis" type="number" min="0" max="100" step="0.5" value="0">
+            <span class="bd">propuesta.porcentaje_cuota_litis (CHECK 0–100)</span></div>
+          <p class="origen" id="p-resumen-pago"></p>
+        </div>
+      </div>
+      <div class="alerta" id="alerta"></div>
+      <div class="acciones"><button class="btn btn-oro" type="submit" id="btn-grabar">Enviar propuesta al cliente</button>
+        <span class="bd">1 transacción: UPDATE propuesta anterior → INSERT propuesta (ENVIADA, fecha_envio = hoy) → UPDATE consulta.estado = 'PROPUESTA' · COMMIT o ROLLBACK</span></div>
+    </form>
+    <div id="resultado"></div>
+
+    <!-- ============ Paso 3 · Lo grabado ============ -->
+    <div class="tarjeta">
+      <h2><span class="paso">3</span> Últimas propuestas</h2>
+      <div style="overflow-x:auto"><table class="tabla mini">
+        <thead><tr><th>Propuesta</th><th>Consulta</th><th>Versión</th><th>Cliente</th><th>Abogado</th><th>Honorarios</th><th>Cuotas</th><th>Cuota litis</th><th>Enviada</th><th>Estado</th></tr></thead>
+        <tbody id="propuestas"><tr><td colspan="10" class="vacio">Cargando…</td></tr></tbody>
+      </table></div>
+      <p class="origen">Cuando el cliente responde que acepta, se registra en <a href="contrato.html" style="color:var(--gold);font-weight:700">Contratos y cuotas</a>.</p>
+      <div class="sql-ssms bd-bloque">
+        <b>Para verlo en SQL Server Management Studio</b> (base magallanes_montero_prueba36):
+        <pre>SELECT TOP 3 * FROM dbo.propuesta ORDER BY id_propuesta DESC;
+SELECT c.id_consulta, c.estado FROM dbo.consulta c
+WHERE c.id_consulta = (SELECT TOP 1 id_consulta FROM dbo.propuesta ORDER BY id_propuesta DESC);</pre>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/menu.js"></script>
+<script src="../js/propuesta.js"></script>
+</body>
+</html>

@@ -4,21 +4,23 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>T4 · Cobranza y cierre · Magallanes-Montero</title>
   <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
 </head>
 <body class="panel">
 <div class="app">
   <aside id="lateral" data-activo="t4"></aside>
   <main class="principal">
     <div class="titulo-pantalla">
-      <h1>T4 · Cobranza y cierre</h1>
-      <p>W18 Emitir comprobante · W19 Registrar pago · W21 Cierre y envío de encuesta · W22 Encuesta (portal) · <b>Responsable: Compañero 3</b></p>
-      <div class="chips"><span style="color:var(--verde)">GRABA</span><span class="chip g">COMPROBANTE</span><span class="chip g">DETALLE_COMPROBANTE</span><span class="chip g">PAGO</span><span class="chip g">NOTIFICACION</span><span class="chip g">CASO (estado)</span><span class="chip g">ENCUESTA</span><span class="chip g">MongoDB: encuestas</span><span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">CUOTA</span><span class="chip l">GASTO_CASO</span><span class="chip l">SERIE_COMPROBANTE</span><span class="chip l">vw_comprobante_total</span><span class="chip l">vw_comprobante_saldo</span></div>
+      <h1><span class="solo-tec">T4 · </span>Cobranza y cierre</h1>
+      <p class="solo-tec">W18 Emitir comprobante · W19 Registrar pago · W21 Cierre y envío de encuesta · W22 Encuesta (portal) · <b>Responsable: Compañero 3</b></p>
+      <p class="solo-cli">Comprobantes, pagos de los clientes, cierre del caso y encuesta de satisfacción.</p>
+      <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">COMPROBANTE</span><span class="chip g">DETALLE_COMPROBANTE</span><span class="chip g">PAGO</span><span class="chip g">NOTIFICACION</span><span class="chip g">CASO (estado)</span><span class="chip g">ENCUESTA</span><span class="chip g">MongoDB: encuestas</span><span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">CUOTA</span><span class="chip l">GASTO_CASO</span><span class="chip l">SERIE_COMPROBANTE</span><span class="chip l">vw_comprobante_total</span><span class="chip l">vw_comprobante_saldo</span></div>
     </div>
     <div class="aviso amarillo" style="margin-top:16px"><b>Módulo en construcción.</b> La base (menú, estilos, conexión a SQL Server y MongoDB) ya está lista.
       El código a completar está en <code>src/main/java/pe/edu/utp/magallanes/web/t4/</code> y la guía paso a paso en <code>docs/GUIA_COMPANERO_3_T4.md</code>.
       Use como modelo la pantalla «W04 · Bandeja y W06 · Cita» (index.html + panel.js + CitaRepositorio.java).</div>
 
-    <div class="tarjeta">
+    <div class="tarjeta bd-bloque">
       <h2>Orden de la transacción (lo que debe grabar cada pantalla)</h2>
       <table class="tabla mini"><thead><tr><th>Pantalla</th><th>Tabla / colección</th><th>Operación</th><th>Columnas</th></tr></thead><tbody><tr><td>W18</td><td><b>COMPROBANTE</b></td><td>INSERT</td><td><span class="bd">id_persona, id_emisor, serie, numero, fecha_emision, fecha_vencimiento, tasa_igv</span></td></tr><tr><td>W18</td><td><b>DETALLE_COMPROBANTE</b></td><td>INSERT (n)</td><td><span class="bd">id_comprobante, nro_linea, id_cuota | id_gasto, descripcion, cantidad, valor_unitario</span></td></tr><tr><td>W18</td><td><b>SERIE_COMPROBANTE</b></td><td>UPDATE (trigger)</td><td><span class="bd">ultimo_numero + 1 (trg_comprobante_correlativo)</span></td></tr><tr><td>W19</td><td><b>PAGO</b></td><td>INSERT</td><td><span class="bd">id_comprobante, id_empleado, monto, medio_pago, nro_operacion</span></td></tr><tr><td>W19</td><td><b>NOTIFICACION</b></td><td>INSERT</td><td><span class="bd">tipo_evento = &#x27;CONSTANCIA_PAGO&#x27;</span></td></tr><tr><td>W21</td><td><b>CASO</b></td><td>UPDATE</td><td><span class="bd">estado = &#x27;CERRADO&#x27;, fecha_cierre</span></td></tr><tr><td>W21</td><td><b>ENCUESTA + NOTIFICACION</b></td><td>INSERT</td><td><span class="bd">id_caso, fecha_envio · tipo_evento = &#x27;ENVIO_ENCUESTA&#x27;</span></td></tr><tr><td>W22</td><td><b>ENCUESTA</b></td><td>UPDATE</td><td><span class="bd">fecha_respuesta, calificacion, nps, comentario</span></td></tr><tr><td>W22</td><td><b>encuestas (MongoDB)</b></td><td>insert</td><td><span class="bd">id_encuesta, id_caso, version_formulario, respuestas{...}</span></td></tr></tbody></table>
       <p class="origen">Todo dentro de <code>cn.setAutoCommit(false)</code> … <code>cn.commit()</code>; si falla una regla (CHECK, FK, UNIQUE o trigger) → <code>cn.rollback()</code>.
@@ -31,7 +33,6 @@
     </div>
   </main>
 </div>
-<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
 <script src="../js/menu.js"></script>
 <script>
 (async () => {
@@ -47,7 +48,6 @@
       + d.map((f) => "<tr>" + cols.map((c) => "<td>" + esc(f[c]) + "</td>").join("") + "</tr>").join("") + "</tbody>";
   } catch (e) { t.innerHTML = '<tr><td class="vacio" style="color:var(--rojo)">' + esc(e.message) + "</td></tr>"; }
 })();
-document.getElementById("toggle-bd").addEventListener("click", () => document.body.classList.toggle("sin-bd"));
 </script>
 </body>
 </html>

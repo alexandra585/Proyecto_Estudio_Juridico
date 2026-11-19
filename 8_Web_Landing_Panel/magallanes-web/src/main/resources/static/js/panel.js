@@ -132,8 +132,8 @@ $("form-cita").addEventListener("submit", async (e) => {
     const id = actual.consulta.idConsulta;
     await cargarBandeja();
     await abrirConsulta(id);
-    $("detalle").insertAdjacentHTML("afterbegin", `<div class="traza" style="margin-top:0">
-      <div>COMMIT ✔ ${esc(r.mensaje)}</div>
+    $("detalle").insertAdjacentHTML("afterbegin", `<div class="aviso verde" style="margin:0 0 10px">✔ ${esc(r.mensaje)} Después de la cita, el abogado envía su <a href="propuesta.html" style="font-weight:700;text-decoration:underline">propuesta de honorarios</a>.</div><div class="traza bd-traza" style="margin-top:0">
+      <div>COMMIT ✔ Transacción registrada en SQL Server</div>
       <div><b>CITA</b> id_cita = ${r.idCita} · ${esc(r.fechaHora)} · PROGRAMADA</div>
       <div><b>CONSULTA</b> N.° ${id} → estado AGENDADA</div>
       <div><b>NOTIFICACION</b> ${r.idNotificacionCliente} (cliente) y ${r.idNotificacionAbogado} (abogado) · RECORDATORIO_CITA</div></div>`);
@@ -152,9 +152,5 @@ async function cargarAgenda() {
     : '<tr><td colspan="7" class="vacio">No hay citas desde hoy.</td></tr>';
 }
 
-$("toggle-bd").addEventListener("click", () => {
-  document.body.classList.toggle("sin-bd");
-  $("toggle-bd").textContent = document.body.classList.contains("sin-bd") ? "Ver tablas de la BD" : "Ocultar tablas de la BD";
-});
 
 iniciar().catch(() => {});

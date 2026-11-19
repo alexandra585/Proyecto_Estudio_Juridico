@@ -157,11 +157,6 @@ $("form-consulta").addEventListener("submit", async (ev) => {
   }
 });
 
-// ---------- Mostrar / ocultar las etiquetas tabla.columna (para la sustentación)
-$("toggle-bd").addEventListener("click", () => {
-  document.body.classList.toggle("sin-bd");
-  $("toggle-bd").textContent = document.body.classList.contains("sin-bd") ? "Ver tablas de la BD" : "Ocultar tablas de la BD";
-});
 
 cargarMaterias();
 cargarSocios();

@@ -110,3 +110,11 @@ Cuando aparezca `Started MagallanesWebApplication`, abra **http://localhost:8080
 | `Cannot open database "magallanes_montero"` | Su base tiene otro nombre: cámbielo en `application.properties` y en los scripts `sql/`. |
 | `Port 8080 was already in use` | Cierre la otra ejecución o cambie `server.port` en `application.properties`. |
 | `Correo o contraseña incorrectos` | Ejecute `sql/01_preparar_base_para_la_web.sql` (los hashes de los datos de prueba son de ejemplo). |
+
+
+## Novedades (18/11/2026)
+
+- **W08 · Contrato y cuotas** funcionando (`panel/contrato.html`): transacción CONTRATO + CUOTA (n) + UPDATE CONSULTA. Ver `docs/W08_CONTRATO_Y_CUOTAS.md` y `sql/04_ver_lo_que_grabo_w08.sql`.
+- **Botón «Mostrar / Ocultar campos BD»** en todas las pantallas (`js/bd.js`): arranca oculto y recuerda tu elección.
+- **W07 · Propuesta de honorarios** funcionando (`panel/propuesta.html`): el flujo ya va completo Landing → Cita → Propuesta → Contrato.
+- Menú y títulos con **nombre simple** (vista cliente) o **código técnico** P1/T1/W04 (con «Mostrar campos BD»).

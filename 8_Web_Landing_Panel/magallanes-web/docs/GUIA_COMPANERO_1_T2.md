@@ -1,5 +1,8 @@
 # Compañero 1 · Transacción T2 · Contratación y apertura del expediente
 
+> **Actualización 18/11/2026:** W08 (contrato + cuotas) ya está programado por Alexandra (`panel/contrato.html`, ver `docs/W08_CONTRATO_Y_CUOTAS.md`). **Actualización:** W07 (propuesta) también ya está programado (`panel/propuesta.html`). A ti te queda **W09 apertura del caso** (`panel/t2-contratacion.html`). Para W09 usa como entrada los contratos que graba W08. Usa ese código como modelo: es el mismo patrón de transacción. Para que tus etiquetas se oculten con el botón, usa `class="bd"`.
+
+
 Estudio Jurídico Magallanes-Montero · Base de Datos II · UTP
 
 **Pantallas de Figma:** W07 · Propuesta de honorarios → W08 · Contrato y cronograma de cuotas → W09 · Nuevo expediente (apertura del caso).

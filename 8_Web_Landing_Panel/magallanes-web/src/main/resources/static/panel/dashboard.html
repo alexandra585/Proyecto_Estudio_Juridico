@@ -4,16 +4,17 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard gerencial · Magallanes-Montero</title>
   <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
 </head>
 <body class="panel">
 <div class="app">
   <aside id="lateral" data-activo="dashboard"></aside>
   <main class="principal">
     <div class="titulo-pantalla">
-      <h1>W03 · Dashboard gerencial</h1>
-      <p>Socios · Datos en vivo de SQL Server: todo se calcula con las vistas <b>vw_dash_*</b> (no se guardan totales: 3FN).
+      <h1><span class="solo-tec">W03 · </span>Dashboard gerencial</h1>
+      <p><span class="solo-tec">Socios · Datos en vivo de SQL Server: todo se calcula con las vistas <b>vw_dash_*</b> (no se guardan totales: 3FN).</span><span class="solo-cli">Ganancias, cobranza y carga de trabajo del estudio, actualizadas al día.</span>
         <span id="actualizado"></span> <button class="btn btn-sec" id="refrescar" type="button" style="padding:6px 12px;margin-left:8px">Actualizar</button></p>
-      <div class="chips"><span style="color:var(--azul)">LEE</span><span class="chip l">PAGO</span><span class="chip l">COMPROBANTE</span><span class="chip l">DETALLE_COMPROBANTE</span><span class="chip l">GASTO_CASO</span><span class="chip l">CUOTA</span><span class="chip l">CONTRATO</span><span class="chip l">CASO</span><span class="chip l">CONSULTA</span><span class="chip l">ENCUESTA</span><span class="chip l">PLAZO</span><span class="chip l">AUDIENCIA</span><span style="color:var(--verde);margin-left:8px">GRABA</span><span class="chip g">— (solo lectura)</span></div>
+      <div class="chips bd-bloque"><span style="color:var(--azul)">LEE</span><span class="chip l">PAGO</span><span class="chip l">COMPROBANTE</span><span class="chip l">DETALLE_COMPROBANTE</span><span class="chip l">GASTO_CASO</span><span class="chip l">CUOTA</span><span class="chip l">CONTRATO</span><span class="chip l">CASO</span><span class="chip l">CONSULTA</span><span class="chip l">ENCUESTA</span><span class="chip l">PLAZO</span><span class="chip l">AUDIENCIA</span><span style="color:var(--verde);margin-left:8px">GRABA</span><span class="chip g">— (solo lectura)</span></div>
     </div>
     <div class="alerta" id="error"></div>
 
@@ -67,7 +68,6 @@
     </div>
   </main>
 </div>
-<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
 <script src="../js/menu.js"></script>
 <script src="../js/chart.umd.js"></script>
 <script src="../js/dashboard.js"></script>

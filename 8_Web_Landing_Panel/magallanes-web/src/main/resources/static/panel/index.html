@@ -4,6 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Panel del estudio · Magallanes-Montero</title>
   <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
 </head>
 <body class="panel">
 <div class="app">
@@ -16,8 +17,9 @@
         <h1>Bandeja de consultas y agendamiento de cita</h1>
         <div style="margin:6px 0"><button class="btn btn-navy" type="button" data-vista="bandeja" style="padding:7px 14px">Bandeja</button>
           <button class="btn btn-sec" type="button" data-vista="agenda" style="padding:7px 14px">Agenda de citas</button></div>
-        <p>Secretaria · Proceso P1 · Las consultas de la página web llegan con canal LANDING y estado RECIBIDA.</p>
-        <div class="chips"><span style="color:var(--verde)">GRABA</span><span class="chip g">CITA</span><span class="chip g">CONSULTA (estado)</span><span class="chip g">NOTIFICACION</span>
+        <p class="solo-tec">Secretaria · Proceso P1 · Las consultas de la página web llegan con canal LANDING y estado RECIBIDA.</p>
+      <p class="solo-cli">Aquí llegan las consultas nuevas. Elija una para revisarla y agendar la cita con el abogado.</p>
+        <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">CITA</span><span class="chip g">CONSULTA (estado)</span><span class="chip g">NOTIFICACION</span>
           <span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">MATERIA</span><span class="chip l">CONSULTA_CONTRAPARTE</span><span class="chip l">CASO_PARTE</span><span class="chip l">ABOGADO_MATERIA</span><span class="chip l">FERIADO</span></div>
       </div>
 
@@ -46,7 +48,7 @@
 
           <!-- W06 · Agendar cita -->
           <form class="tarjeta" id="form-cita" hidden novalidate>
-            <h2>W06 · Agendar cita</h2>
+            <h2><span class="solo-tec">W06 · </span>Agendar cita</h2>
             <div class="campo"><label for="abogado">Abogado que atiende la materia *</label>
               <select id="abogado"></select><span class="bd">cita.id_abogado → abogado (filtrado por abogado_materia)</span></div>
             <div class="fila">
@@ -59,7 +61,7 @@
               <div class="horas" id="horas"></div><span class="bd">cita.fecha_hora (hora) · tachadas = otra cita del abogado</span></div>
             <div class="alerta" id="alerta-cita"></div>
             <button class="btn btn-oro" type="submit" id="btn-cita" style="width:100%;margin-top:14px">Agendar cita y notificar</button>
-            <p style="font-size:12px;color:var(--muted);margin:8px 0 0">Una sola transacción: INSERT CITA → UPDATE CONSULTA (AGENDADA) → INSERT NOTIFICACION al cliente (recordatorio 1 día antes) → INSERT NOTIFICACION al abogado.</p>
+            <p class="solo-tec" style="font-size:12px;color:var(--muted);margin:8px 0 0">Una sola transacción: INSERT CITA → UPDATE CONSULTA (AGENDADA) → INSERT NOTIFICACION al cliente (recordatorio 1 día antes) → INSERT NOTIFICACION al abogado.</p>
           </form>
       </div>
     </section>
@@ -68,7 +70,7 @@
     <section id="vista-agenda" hidden>
       <div class="titulo-pantalla"><h1>Agenda de citas</h1>
         <div style="margin:6px 0"><button class="btn btn-sec" type="button" data-vista="bandeja" style="padding:7px 14px">Bandeja</button>
-          <button class="btn btn-navy" type="button" data-vista="agenda" style="padding:7px 14px">Agenda de citas</button></div><p>Citas desde hoy (SELECT a CITA + CONSULTA + PERSONA + EMPLEADO).</p></div>
+          <button class="btn btn-navy" type="button" data-vista="agenda" style="padding:7px 14px">Agenda de citas</button></div><p class="solo-tec">Citas desde hoy (SELECT a CITA + CONSULTA + PERSONA + EMPLEADO).</p><p class="solo-cli">Citas programadas desde hoy.</p></div>
       <div class="tarjeta" style="overflow-x:auto">
         <table class="tabla"><thead><tr><th>N.° cita</th><th>Fecha y hora</th><th>Cliente</th><th>Abogado</th><th>Modalidad</th><th>Estado</th><th>Consulta</th></tr></thead>
           <tbody id="agenda-filas"></tbody></table>
@@ -76,7 +78,6 @@
     </section>
   </main>
 </div>
-<button class="toggle-bd" id="toggle-bd" type="button">Ocultar tablas de la BD</button>
 <script src="../js/menu.js"></script>
 <script src="../js/panel.js"></script>
 </body>

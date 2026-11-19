@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>W08 · Contrato y cronograma de cuotas · Magallanes-Montero</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
+</head>
+<body class="panel">
+<div class="app">
+  <aside id="lateral" data-activo="w08"></aside>
+
+  <main class="principal">
+    <div class="titulo-pantalla">
+      <h1><span class="solo-tec">W08 · </span>Contrato y cronograma de cuotas</h1>
+      <p class="solo-tec">Secretaria / abogado · Proceso P1 · Transacción T2 · Cuando el cliente acepta la propuesta de honorarios se firma el contrato y se fija cuándo paga.</p>
+      <p class="solo-cli">Cuando el cliente acepta la propuesta de honorarios, se firma el contrato y se fija cuándo paga.</p>
+      <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">CONTRATO</span><span class="chip g">CUOTA (n filas)</span><span class="chip g">CONSULTA (estado)</span><span class="chip g">PROPUESTA (estado)</span>
+        <span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">PROPUESTA</span><span class="chip l">PERSONA</span><span class="chip l">MATERIA</span><span class="chip l">EMPLEADO</span><span class="chip l">vw_cuota_estado</span></div>
+    </div>
+
+    <!-- ============ Paso 1 · El cliente acepta la propuesta ============ -->
+    <div class="tarjeta">
+      <h2><span class="paso">1</span> Propuestas esperando respuesta del cliente</h2>
+      <p class="origen" style="margin-top:-6px">Cuando el cliente confirma por WhatsApp o en persona, marque la propuesta como aceptada.
+        <span class="bd">UPDATE propuesta SET estado = 'ACEPTADA', fecha_respuesta = hoy</span></p>
+      <div style="overflow-x:auto"><table class="tabla mini">
+        <thead><tr><th>Propuesta</th><th>Cliente</th><th>Materia</th><th>Abogado</th><th>Honorarios</th><th>Cuotas</th><th>Enviada</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="por-responder"><tr><td colspan="9" class="vacio">Cargando…</td></tr></tbody>
+      </table></div>
+      <div class="fila-bd bd">propuesta.id_propuesta · propuesta.version · persona (cliente de la consulta) · materia.nombre · empleado (abogado) · propuesta.monto_honorarios · propuesta.nro_cuotas · propuesta.fecha_envio · propuesta.estado</div>
+    </div>
+
+    <!-- ============ Paso 2 · Contrato + cronograma ============ -->
+    <form class="tarjeta" id="form-contrato" novalidate>
+      <h2><span class="paso">2</span> Registrar el contrato</h2>
+      <div class="dos-col">
+        <div>
+          <div class="campo"><label for="propuesta">Propuesta aceptada *</label>
+            <select id="propuesta"><option value="">Cargando…</option></select>
+            <span class="bd">contrato.id_propuesta → propuesta (estado ACEPTADA y sin contrato · UNIQUE 1:1)</span></div>
+
+          <div class="detalle" id="resumen-propuesta" hidden>
+            <dl>
+              <dt>Consulta</dt><dd><span id="r-consulta"></span> <span class="bd">propuesta.id_consulta → consulta</span></dd>
+              <dt>Materia / abogado</dt><dd><span id="r-materia"></span> <span class="bd">materia.nombre · propuesta.id_abogado</span></dd>
+              <dt>Honorarios</dt><dd><b id="r-honorarios"></b> <span class="bd">propuesta.monto_honorarios</span></dd>
+              <dt>Cuotas pactadas</dt><dd><span id="r-cuotas"></span> <span class="bd">propuesta.nro_cuotas</span></dd>
+              <dt>Cuota litis</dt><dd><span id="r-litis"></span> <span class="bd">propuesta.porcentaje_cuota_litis</span></dd>
+            </dl>
+          </div>
+
+          <div class="campo" style="margin-top:12px"><label for="cliente">Cliente que firma *</label>
+            <select id="cliente"></select>
+            <span class="bd">contrato.id_cliente → persona · el trigger trg_contrato_cliente_documento exige DNI o RUC</span></div>
+
+          <div class="fila">
+            <div class="campo"><label for="nro">N.° de contrato *</label><input id="nro" maxlength="20">
+              <span class="bd">contrato.nro_contrato (UNIQUE)</span></div>
+            <div class="campo"><label for="firma">Fecha de firma *</label><input id="firma" type="date">
+              <span class="bd">contrato.fecha_firma</span></div>
+          </div>
+          <div class="fila">
+            <div class="campo"><label for="tipo">Tipo de encargo *</label>
+              <select id="tipo"><option>PATROCINIO</option><option>REPRESENTACION</option><option>TRAMITE</option><option>PRO_BONO</option></select>
+              <span class="bd">contrato.tipo_encargo (CHECK)</span></div>
+            <div class="campo"><label for="modalidad">Modalidad de pago *</label>
+              <select id="modalidad"><option>CUOTAS</option><option>UNICO</option><option>IGUALA_MENSUAL</option></select>
+              <span class="bd">contrato.modalidad_pago (CHECK)</span></div>
+          </div>
+          <label class="check" style="margin-top:12px"><input type="checkbox" id="carta" checked> El cliente firmó carta poder
+            <span class="bd">contrato.con_carta_poder (BIT)</span></label>
+        </div>
+
+        <div>
+          <h2 style="margin-bottom:6px">Cronograma de pagos</h2>
+          <div id="zona-cronograma">
+            <div class="fila generador">
+              <div class="campo"><label for="g-n">N.° de cuotas</label><input id="g-n" type="number" min="1" max="24" value="2"></div>
+              <div class="campo"><label for="g-inicio">Primer vencimiento</label><input id="g-inicio" type="date"></div>
+              <label class="check"><input type="checkbox" id="g-adelanto" checked> La 1.ª es adelanto</label>
+              <button class="btn btn-sec" type="button" id="generar" style="padding:9px 14px">Generar</button>
+            </div>
+            <table class="tabla mini cronograma">
+              <thead><tr><th>N.°<div class="bd">cuota.nro_cuota</div></th><th>Concepto<div class="bd">cuota.concepto</div></th>
+                <th>Monto S/<div class="bd">cuota.monto</div></th><th>Vence<div class="bd">cuota.fecha_vencimiento</div></th><th></th></tr></thead>
+              <tbody id="cuotas"></tbody>
+            </table>
+            <button class="btn btn-sec" type="button" id="agregar" style="padding:7px 12px;margin-top:8px">+ Agregar cuota</button>
+            <div class="suma" id="suma"></div>
+            <p class="origen"><span class="bd">cuota.estado = 'PENDIENTE' (DEFAULT) · cuota.id_contrato = el id recién creado</span>
+              La cuota litis no se programa aquí: se agrega cuando el caso termina y se liquida.</p>
+          </div>
+          <div class="aviso verde" id="aviso-probono" hidden>Propuesta pro bono (S/ 0): el contrato no lleva cuotas.</div>
+        </div>
+      </div>
+
+      <div class="alerta" id="alerta"></div>
+      <div class="acciones"><button class="btn btn-oro" type="submit" id="btn-grabar">Registrar contrato y cronograma</button>
+        <span class="bd">1 transacción: INSERT contrato → INSERT cuota × n → UPDATE consulta.estado = 'CONTRATADA' · COMMIT o ROLLBACK</span></div>
+      <div id="resultado"></div>
+    </form>
+
+    <!-- ============ Paso 3 · Lo grabado ============ -->
+    <div class="tarjeta">
+      <h2><span class="paso">3</span> Últimos contratos</h2>
+      <div style="overflow-x:auto"><table class="tabla mini">
+        <thead><tr><th>Contrato</th><th>N.°</th><th>Firma</th><th>Cliente</th><th>Encargo</th><th>Pago</th><th>Cuotas</th><th>Total</th><th>Consulta</th></tr></thead>
+        <tbody id="contratos"><tr><td colspan="9" class="vacio">Cargando…</td></tr></tbody>
+      </table></div>
+      <div class="fila-bd bd">contrato ⋈ persona ⋈ propuesta ⋈ consulta · COUNT / SUM de cuota por id_contrato</div>
+      <div class="sql-ssms bd-bloque">
+        <b>Para verlo en SQL Server Management Studio</b> (base magallanes_montero_prueba36):
+        <pre id="sql-ssms">SELECT TOP 1 * FROM dbo.contrato ORDER BY id_contrato DESC;
+SELECT * FROM dbo.vw_cuota_estado WHERE id_contrato = (SELECT MAX(id_contrato) FROM dbo.contrato);
+SELECT c.id_consulta, c.estado FROM dbo.consulta c
+  JOIN dbo.propuesta p ON p.id_consulta = c.id_consulta
+  JOIN dbo.contrato k ON k.id_propuesta = p.id_propuesta
+WHERE k.id_contrato = (SELECT MAX(id_contrato) FROM dbo.contrato);</pre>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/menu.js"></script>
+<script src="../js/contrato.js"></script>
+</body>
+</html>

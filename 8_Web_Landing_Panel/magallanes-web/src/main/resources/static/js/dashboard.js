@@ -96,8 +96,4 @@ function pintar(d) {
 }
 
 $("refrescar").addEventListener("click", cargar);
-$("toggle-bd").addEventListener("click", () => {
-  document.body.classList.toggle("sin-bd");
-  $("toggle-bd").textContent = document.body.classList.contains("sin-bd") ? "Ver tablas de la BD" : "Ocultar tablas de la BD";
-});
 cargar();
