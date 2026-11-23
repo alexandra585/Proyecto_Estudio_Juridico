@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.sql.DataSource;
+import org.bson.Document;
 import org.springframework.stereotype.Repository;
+import pe.edu.utp.magallanes.web.config.Datos;
 import pe.edu.utp.magallanes.web.config.ReglaNegocioException;
 import pe.edu.utp.magallanes.web.mongo.MongoDocumentos;
 
@@ -31,7 +33,7 @@ import pe.edu.utp.magallanes.web.mongo.MongoDocumentos;
  *
  *   · W07 Propuesta ................ TRANSACCIÓN: UPDATE PROPUESTA anterior → INSERT PROPUESTA → UPDATE CONSULTA (PROPUESTA)
  *
- * PENDIENTE (Compañero 1): W09 apertura del caso (ver el TODO de abajo).
+ *   · W09 Apertura del expediente .. TRANSACCIÓN: INSERT CASO → INSERT CASO_PARTE (n) → INSERT CASO_ETAPA → MongoDB «expedientes»
  * Patrón: cn.setAutoCommit(false) → INSERTs/UPDATEs → cn.commit();  si algo falla → cn.rollback().
  */
 @Repository
@@ -284,7 +286,7 @@ public class T2Repositorio {
     }
 
     // =====================================================================================
-    // PENDIENTE · Compañero 1
+    // W07 · PROPUESTA
     // =====================================================================================
     // =====================================================================================
     // W07 · PROPUESTA DE HONORARIOS  (una sola transacción)
@@ -379,22 +381,183 @@ public class T2Repositorio {
         }
     }
 
-    /*
-     * W09 · CASO + CASO_PARTE + CASO_ETAPA + MongoDB «expedientes» (TODO)
-     *   1) String idMongo = mongo.guardar("expedientes", new Document("id_caso", null).append("codigo_interno", codigo)...);
-     *   2) INSERT INTO dbo.caso (id_contrato, id_materia, id_abogado_responsable, codigo_interno, descripcion, fecha_apertura, expediente_mongo_id) ...
-     *   3) INSERT INTO dbo.caso_parte (id_caso, id_persona, id_rol, tipo_parte) ...   (cliente y contrapartes)
-     *   4) INSERT INTO dbo.caso_etapa (id_caso, id_etapa, fecha_inicio) ...           (primera etapa)
-     *   5) commit; actualizar en Mongo el id_caso; si hay ROLLBACK → mongo.borrar("expedientes", idMongo).
-     *   Los contratos que llegan aquí son los que graba W08 (contratosRecientes() sin fila en dbo.caso).
-     */
-    public Map<String, Object> abrirCaso(Map<String, Object> d) throws SQLException {
-        throw new ReglaNegocioException("W09 pendiente: lo programa el Compañero 1.");
+    // =====================================================================================
+    // W09 · APERTURA DEL EXPEDIENTE: CASO + CASO_PARTE (n) + CASO_ETAPA + MongoDB «expedientes»
+    // =====================================================================================
+
+    /** Contratos firmados que todavía no tienen caso (caso.id_contrato es UNIQUE → 1:1). */
+    public List<Map<String, Object>> contratosSinCaso() throws SQLException {
+        return consulta("SELECT k.id_contrato, k.nro_contrato, FORMAT(k.fecha_firma, 'dd/MM/yyyy') AS fecha_firma, k.tipo_encargo, "
+                + "k.id_cliente, COALESCE(pe.razon_social, pe.nombres + ' ' + pe.apellidos) AS cliente, "
+                + "c.id_consulta, c.id_materia, m.nombre AS materia, CAST(c.resumen AS NVARCHAR(500)) AS resumen, "
+                + "p.id_abogado, e.nombres + ' ' + e.apellidos AS abogado "
+                + "FROM dbo.contrato k JOIN dbo.propuesta p ON p.id_propuesta = k.id_propuesta "
+                + "JOIN dbo.consulta c ON c.id_consulta = p.id_consulta JOIN dbo.materia m ON m.id_materia = c.id_materia "
+                + "JOIN dbo.persona pe ON pe.id_persona = k.id_cliente JOIN dbo.empleado e ON e.id_empleado = p.id_abogado "
+                + "WHERE NOT EXISTS (SELECT 1 FROM dbo.caso x WHERE x.id_contrato = k.id_contrato) ORDER BY k.id_contrato DESC");
+    }
+
+    /** Contrapartes que el cliente mencionó en su consulta (pasan al caso como CONTRAPARTE). */
+    public List<Map<String, Object>> contrapartesDeConsulta(int idConsulta) throws SQLException {
+        return consultaP("SELECT p.id_persona, COALESCE(p.razon_social, p.nombres + ' ' + p.apellidos) AS nombre, "
+                + "COALESCE(p.tipo_documento + ' ' + p.nro_documento, 'SIN DOCUMENTO') AS documento "
+                + "FROM dbo.consulta_contraparte cc JOIN dbo.persona p ON p.id_persona = cc.id_persona WHERE cc.id_consulta = ?", idConsulta);
+    }
+
+    public List<Map<String, Object>> rolesProcesales() throws SQLException {
+        return consulta("SELECT id_rol, nombre, familia FROM dbo.rol_procesal ORDER BY familia, id_rol");
+    }
+
+    public List<Map<String, Object>> etapasProcesales() throws SQLException {
+        return consulta("SELECT id_etapa, nombre, orden FROM dbo.etapa_procesal ORDER BY orden");
+    }
+
+    /** EXP-AAAA-0001, EXP-AAAA-0002… (caso.codigo_interno es UNIQUE). */
+    public String siguienteCodigoCaso() throws SQLException {
+        String prefijo = "EXP-" + Year.now().getValue() + "-";
+        try (Connection cn = ds.getConnection();
+             PreparedStatement ps = cn.prepareStatement("SELECT MAX(codigo_interno) FROM dbo.caso WHERE codigo_interno LIKE ?")) {
+            ps.setString(1, prefijo + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                int n = 0;
+                if (rs.next() && rs.getString(1) != null) {
+                    try { n = Integer.parseInt(rs.getString(1).substring(prefijo.length())); } catch (NumberFormatException ignored) { }
+                }
+                return prefijo + String.format("%04d", n + 1);
+            }
+        }
+    }
+
+    /** Últimos casos abiertos, con el _id de su expediente digital en MongoDB. */
+    public List<Map<String, Object>> casosRecientes() throws SQLException {
+        return consulta("SELECT TOP 10 c.id_caso, c.codigo_interno, FORMAT(c.fecha_apertura, 'dd/MM/yyyy') AS apertura, m.nombre AS materia, "
+                + "COALESCE(pe.razon_social, pe.nombres + ' ' + pe.apellidos) AS cliente, e.nombres + ' ' + e.apellidos AS abogado, c.estado, "
+                + "(SELECT COUNT(*) FROM dbo.caso_parte x WHERE x.id_caso = c.id_caso) AS partes, "
+                + "(SELECT TOP 1 ep.nombre FROM dbo.caso_etapa ce JOIN dbo.etapa_procesal ep ON ep.id_etapa = ce.id_etapa "
+                + "  WHERE ce.id_caso = c.id_caso AND ce.fecha_fin IS NULL) AS etapa_actual, c.expediente_mongo_id "
+                + "FROM dbo.caso c JOIN dbo.materia m ON m.id_materia = c.id_materia JOIN dbo.contrato k ON k.id_contrato = c.id_contrato "
+                + "JOIN dbo.persona pe ON pe.id_persona = k.id_cliente JOIN dbo.empleado e ON e.id_empleado = c.id_abogado_responsable "
+                + "ORDER BY c.id_caso DESC");
+    }
+
+    /** Documento del expediente digital tal como está guardado en MongoDB (para mostrarlo en pantalla). */
+    public Map<String, Object> expedienteMongo(int idCaso) {
+        if (!mongo.disponible()) throw new ReglaNegocioException("MongoDB no está encendido en esta computadora.");
+        Document doc = mongo.buscarPor("expedientes", "id_caso", idCaso);
+        if (doc == null) throw new ReglaNegocioException("El caso " + idCaso + " no tiene expediente digital en MongoDB.");
+        return Map.of("coleccion", "expedientes", "json", doc.toJson());
+    }
+
+    public Map<String, Object> abrirCaso(Map<String, Object> d, String usuario) throws SQLException {
+        int idContrato = Datos.entero(d, "idContrato");
+        int idAbogado = Datos.entero(d, "idAbogado");
+        String codigo = Datos.texto(d, "codigoInterno");
+        String nroJudicial = Datos.textoOpcional(d, "nroExpedienteJudicial");
+        String descripcion = Datos.texto(d, "descripcion");
+        boolean alta = Datos.booleano(d, "esAltaComplejidad");
+        int idRolCliente = Datos.entero(d, "idRolCliente");
+        int idEtapa = Datos.entero(d, "idEtapa");
+        List<Map<String, Object>> contrapartes = Datos.lista(d, "contrapartes");
+        String resumen = Datos.textoOpcional(d, "resumenHechos");
+        List<String> etiquetas = new ArrayList<>();
+        for (Object o : Datos.valores(d, "etiquetas")) if (o != null && !o.toString().isBlank()) etiquetas.add(o.toString().trim().toLowerCase());
+        if (!codigo.matches("EXP-\\d{4}-\\d{4}")) throw new ReglaNegocioException("El código interno debe tener el formato EXP-AAAA-0000.");
+
+        String idMongo = null;
+        try (Connection cn = ds.getConnection()) {
+            cn.setAutoCommit(false);                                   // BEGIN TRANSACTION
+            try {
+                // 0) Contrato sin caso (UPDLOCK) y materia de la consulta de origen
+                int idCliente, idMateria;
+                String materia;
+                try (PreparedStatement ps = cn.prepareStatement(
+                        "SELECT k.id_cliente, c.id_materia, m.nombre, (SELECT COUNT(*) FROM dbo.caso x WHERE x.id_contrato = k.id_contrato) "
+                      + "FROM dbo.contrato k WITH (UPDLOCK) JOIN dbo.propuesta p ON p.id_propuesta = k.id_propuesta "
+                      + "JOIN dbo.consulta c ON c.id_consulta = p.id_consulta JOIN dbo.materia m ON m.id_materia = c.id_materia "
+                      + "WHERE k.id_contrato = ?")) {
+                    ps.setInt(1, idContrato);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) throw new ReglaNegocioException("El contrato no existe.");
+                        if (rs.getInt(4) > 0) throw new ReglaNegocioException("Ese contrato ya tiene expediente (relación 1:1).");
+                        idCliente = rs.getInt(1); idMateria = rs.getInt(2); materia = rs.getString(3);
+                    }
+                }
+
+                // 1) CASO (estado ACTIVO por DEFAULT)
+                int idCaso;
+                try (PreparedStatement ps = cn.prepareStatement(
+                        "INSERT INTO dbo.caso (id_contrato, id_materia, id_abogado_responsable, codigo_interno, nro_expediente_judicial, "
+                      + "descripcion, es_alta_complejidad, fecha_apertura) VALUES (?, ?, ?, ?, ?, ?, ?, CAST(GETDATE() AS DATE))",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setInt(1, idContrato); ps.setInt(2, idMateria); ps.setInt(3, idAbogado); ps.setString(4, codigo);
+                    Datos.setTextoONull(ps, 5, nroJudicial); ps.setString(6, descripcion); ps.setBoolean(7, alta);
+                    ps.executeUpdate();
+                    idCaso = Datos.idGenerado(ps);
+                }
+
+                // 2) CASO_PARTE: el cliente y cada contraparte (PK compuesta id_caso + id_persona + id_rol)
+                int partes = 0;
+                try (PreparedStatement ps = cn.prepareStatement(
+                        "INSERT INTO dbo.caso_parte (id_caso, id_persona, id_rol, tipo_parte, abogado_externo) VALUES (?, ?, ?, ?, ?)")) {
+                    ps.setInt(1, idCaso); ps.setInt(2, idCliente); ps.setInt(3, idRolCliente); ps.setString(4, "CLIENTE"); ps.setNull(5, java.sql.Types.NVARCHAR);
+                    ps.addBatch(); partes++;
+                    for (Map<String, Object> cp : contrapartes) {
+                        ps.setInt(1, idCaso); ps.setInt(2, Datos.entero(cp, "idPersona")); ps.setInt(3, Datos.entero(cp, "idRol"));
+                        ps.setString(4, "CONTRAPARTE"); Datos.setTextoONull(ps, 5, Datos.textoOpcional(cp, "abogadoExterno"));
+                        ps.addBatch(); partes++;
+                    }
+                    ps.executeBatch();
+                }
+
+                // 3) CASO_ETAPA: primera etapa abierta (fecha_fin NULL; índice único filtrado uq_caso_etapa_abierta)
+                try (PreparedStatement ps = cn.prepareStatement(
+                        "INSERT INTO dbo.caso_etapa (id_caso, id_etapa, fecha_inicio) VALUES (?, ?, CAST(GETDATE() AS DATE))")) {
+                    ps.setInt(1, idCaso); ps.setInt(2, idEtapa); ps.executeUpdate();
+                }
+
+                // 4) MongoDB «expedientes»: el expediente digital (texto libre, etiquetas, bitácora) → su _id va a SQL
+                String aviso = null;
+                if (mongo.disponible()) {
+                    idMongo = mongo.guardar("expedientes", new Document("id_caso", idCaso)
+                            .append("codigo_interno", codigo).append("materia", materia)
+                            .append("resumen_hechos", resumen == null ? descripcion : resumen)
+                            .append("etiquetas", etiquetas).append("archivos", new ArrayList<>())
+                            .append("bitacora", List.of(new Document("fecha", new java.util.Date()).append("evento", "Apertura del expediente")
+                                    .append("usuario", usuario).append("detalle", new Document("id_contrato", idContrato)))));
+                    try (PreparedStatement ps = cn.prepareStatement("UPDATE dbo.caso SET expediente_mongo_id = ? WHERE id_caso = ?")) {
+                        ps.setString(1, idMongo); ps.setInt(2, idCaso); ps.executeUpdate();
+                    }
+                } else {
+                    aviso = "MongoDB no está encendido: el caso se grabó en SQL Server y el expediente digital queda pendiente (expediente_mongo_id = NULL).";
+                }
+
+                cn.commit();                                           // COMMIT
+                Map<String, Object> r = new LinkedHashMap<>();
+                r.put("idCaso", idCaso);
+                r.put("codigoInterno", codigo);
+                r.put("partes", partes);
+                r.put("expedienteMongoId", idMongo);
+                r.put("aviso", aviso);
+                r.put("mensaje", "Expediente " + codigo + " abierto con " + partes + " parte(s).");
+                return r;
+            } catch (SQLException | RuntimeException e) {
+                try { cn.rollback(); } catch (SQLException ignorada) { /* ya revertida */ }
+                mongo.borrar("expedientes", idMongo);                  // compensación en MongoDB
+                throw e;
+            }
+        }
     }
 
     // =====================================================================================
     // Utilidades
     // =====================================================================================
+    private List<Map<String, Object>> consultaP(String sql, Object... params) throws SQLException {
+        try (Connection cn = ds.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) ps.setObject(i + 1, params[i]);
+            return Datos.filas(ps);
+        }
+    }
+
     private List<Map<String, Object>> consulta(String sql) throws SQLException {
         try (Connection cn = ds.getConnection(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             return filas(rs);

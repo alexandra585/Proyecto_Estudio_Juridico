@@ -50,4 +50,19 @@ public class PublicoRepositorio {
             return new Calificacion(rs.getBigDecimal(1), rs.getInt(2));
         }
     }
+
+    /** Cifras de la landing calculadas en SQL Server (no se escriben a mano). */
+    public java.util.Map<String, Object> cifras() throws SQLException {
+        String sql = "SELECT (SELECT COUNT(*) FROM dbo.caso), (SELECT COUNT(*) FROM dbo.caso WHERE estado = 'CERRADO'), "
+                + "(SELECT COUNT(DISTINCT k.id_cliente) FROM dbo.contrato k), (SELECT COUNT(*) FROM dbo.abogado a JOIN dbo.empleado e ON e.id_empleado = a.id_empleado WHERE e.activo = 1), "
+                + "(SELECT CAST(AVG(CAST(calificacion AS DECIMAL(4,2))) AS DECIMAL(3,1)) FROM dbo.encuesta), (SELECT COUNT(calificacion) FROM dbo.encuesta), "
+                + "(SELECT COUNT(*) FROM dbo.materia)";
+        try (Connection cn = ds.getConnection(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            java.util.Map<String, Object> r = new java.util.LinkedHashMap<>();
+            r.put("casos", rs.getInt(1)); r.put("cerrados", rs.getInt(2)); r.put("clientes", rs.getInt(3)); r.put("abogados", rs.getInt(4));
+            r.put("promedio", rs.getBigDecimal(5)); r.put("respuestas", rs.getInt(6)); r.put("areas", rs.getInt(7));
+            return r;
+        }
+    }
 }

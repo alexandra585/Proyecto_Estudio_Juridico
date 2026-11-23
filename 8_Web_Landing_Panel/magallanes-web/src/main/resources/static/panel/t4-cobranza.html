@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>T4 · Cobranza y cierre · Magallanes-Montero</title>
+  <title>W18–W22 · Cobranza y cierre · Magallanes-Montero</title>
   <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
   <script src="../js/bd.js"></script>
 </head>
@@ -11,43 +11,126 @@
   <aside id="lateral" data-activo="t4"></aside>
   <main class="principal">
     <div class="titulo-pantalla">
-      <h1><span class="solo-tec">T4 · </span>Cobranza y cierre</h1>
-      <p class="solo-tec">W18 Emitir comprobante · W19 Registrar pago · W21 Cierre y envío de encuesta · W22 Encuesta (portal) · <b>Responsable: Compañero 3</b></p>
+      <h1><span class="solo-tec">T4 · </span>Cobranza y cierre <small id="mongo-estado"></small></h1>
+      <p class="solo-tec">Administración · Proceso P3 · Transacción T4 · W18 comprobante · W19 pago · W21 cierre del caso · W22 encuesta.</p>
       <p class="solo-cli">Comprobantes, pagos de los clientes, cierre del caso y encuesta de satisfacción.</p>
-      <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">COMPROBANTE</span><span class="chip g">DETALLE_COMPROBANTE</span><span class="chip g">PAGO</span><span class="chip g">NOTIFICACION</span><span class="chip g">CASO (estado)</span><span class="chip g">ENCUESTA</span><span class="chip g">MongoDB: encuestas</span><span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">PERSONA</span><span class="chip l">CUOTA</span><span class="chip l">GASTO_CASO</span><span class="chip l">SERIE_COMPROBANTE</span><span class="chip l">vw_comprobante_total</span><span class="chip l">vw_comprobante_saldo</span></div>
+      <div class="chips bd-bloque"><span style="color:var(--verde)">GRABA</span><span class="chip g">COMPROBANTE</span><span class="chip g">DETALLE_COMPROBANTE</span><span class="chip g">SERIE_COMPROBANTE (trigger)</span><span class="chip g">PAGO</span><span class="chip g">CUOTA (estado)</span><span class="chip g">NOTIFICACION</span><span class="chip g">CASO / CASO_ETAPA</span><span class="chip g">ENCUESTA</span><span class="chip m">MongoDB · encuestas</span><span class="chip m">MongoDB · formularios_encuesta</span>
+        <span style="color:var(--azul);margin-left:8px">CONSULTA</span><span class="chip l">vw_comprobante_total</span><span class="chip l">vw_comprobante_saldo</span><span class="chip l">vw_cuota_estado</span><span class="chip l">vw_plazo_estado</span></div>
     </div>
-    <div class="aviso amarillo" style="margin-top:16px"><b>Módulo en construcción.</b> La base (menú, estilos, conexión a SQL Server y MongoDB) ya está lista.
-      El código a completar está en <code>src/main/java/pe/edu/utp/magallanes/web/t4/</code> y la guía paso a paso en <code>docs/GUIA_COMPANERO_3_T4.md</code>.
-      Use como modelo la pantalla «W04 · Bandeja y W06 · Cita» (index.html + panel.js + CitaRepositorio.java).</div>
 
-    <div class="tarjeta bd-bloque">
-      <h2>Orden de la transacción (lo que debe grabar cada pantalla)</h2>
-      <table class="tabla mini"><thead><tr><th>Pantalla</th><th>Tabla / colección</th><th>Operación</th><th>Columnas</th></tr></thead><tbody><tr><td>W18</td><td><b>COMPROBANTE</b></td><td>INSERT</td><td><span class="bd">id_persona, id_emisor, serie, numero, fecha_emision, fecha_vencimiento, tasa_igv</span></td></tr><tr><td>W18</td><td><b>DETALLE_COMPROBANTE</b></td><td>INSERT (n)</td><td><span class="bd">id_comprobante, nro_linea, id_cuota | id_gasto, descripcion, cantidad, valor_unitario</span></td></tr><tr><td>W18</td><td><b>SERIE_COMPROBANTE</b></td><td>UPDATE (trigger)</td><td><span class="bd">ultimo_numero + 1 (trg_comprobante_correlativo)</span></td></tr><tr><td>W19</td><td><b>PAGO</b></td><td>INSERT</td><td><span class="bd">id_comprobante, id_empleado, monto, medio_pago, nro_operacion</span></td></tr><tr><td>W19</td><td><b>NOTIFICACION</b></td><td>INSERT</td><td><span class="bd">tipo_evento = &#x27;CONSTANCIA_PAGO&#x27;</span></td></tr><tr><td>W21</td><td><b>CASO</b></td><td>UPDATE</td><td><span class="bd">estado = &#x27;CERRADO&#x27;, fecha_cierre</span></td></tr><tr><td>W21</td><td><b>ENCUESTA + NOTIFICACION</b></td><td>INSERT</td><td><span class="bd">id_caso, fecha_envio · tipo_evento = &#x27;ENVIO_ENCUESTA&#x27;</span></td></tr><tr><td>W22</td><td><b>ENCUESTA</b></td><td>UPDATE</td><td><span class="bd">fecha_respuesta, calificacion, nps, comentario</span></td></tr><tr><td>W22</td><td><b>encuestas (MongoDB)</b></td><td>insert</td><td><span class="bd">id_encuesta, id_caso, version_formulario, respuestas{...}</span></td></tr></tbody></table>
-      <p class="origen">Todo dentro de <code>cn.setAutoCommit(false)</code> … <code>cn.commit()</code>; si falla una regla (CHECK, FK, UNIQUE o trigger) → <code>cn.rollback()</code>.
-        Lo de MongoDB se guarda primero y, si SQL Server hace ROLLBACK, se borra (compensación con <code>MongoDocumentos.borrar</code>).</p>
-    </div>
+    <div class="pestanas"><button type="button" data-p="w18" class="activo"><span class="solo-tec">W18 · </span>Emitir comprobante</button>
+      <button type="button" data-p="w19"><span class="solo-tec">W19 · </span>Registrar pago</button>
+      <button type="button" data-p="w21"><span class="solo-tec">W21 · </span>Cerrar caso</button>
+      <button type="button" data-p="w22"><span class="solo-tec">W22 · </span>Encuesta</button>
+      <button type="button" data-p="w22r">Resultados de encuestas</button></div>
+
+    <!-- W18 -->
+    <form class="tarjeta" id="w18" novalidate style="margin-top:0;border-top-left-radius:0">
+      <div class="dos-col">
+        <div>
+          <div class="campo"><label for="c-cliente">Cliente (receptor) *</label><select id="c-cliente"></select><span class="bd">comprobante.id_persona → persona (trigger: debe tener DNI o RUC)</span></div>
+          <div class="fila">
+            <div class="campo"><label for="c-serie">Serie *</label><select id="c-serie"></select><span class="bd">comprobante.serie → serie_comprobante (define el tipo)</span></div>
+            <div class="campo"><label>Número</label><div id="c-numero" style="font-weight:800;padding:9px 0">—</div><span class="bd">comprobante.numero = serie_comprobante.ultimo_numero + 1 (trigger correlativo)</span></div>
+          </div>
+          <div class="fila">
+            <div class="campo"><label for="c-vence">Vence *</label><input id="c-vence" type="date"><span class="bd">comprobante.fecha_vencimiento (CHECK ≥ emisión)</span></div>
+            <div class="campo"><label>IGV</label><div id="c-igv" style="font-weight:800;padding:9px 0">18 %</div><span class="bd">comprobante.tasa_igv (0.18 boleta/factura · 0 recibo)</span></div>
+          </div>
+        </div>
+        <div>
+          <h2 style="margin-bottom:6px">Cuotas por facturar <span class="bd">cuota (PENDIENTE y sin comprobante vigente) → detalle_comprobante.id_cuota</span></h2>
+          <div class="lista-check" id="c-cuotas" style="max-height:230px"><div class="vacio">Elija un cliente.</div></div>
+          <div class="suma ok" id="c-total" style="margin-top:8px">—</div>
+          <div class="bd">subtotal, IGV y total NO se guardan: los calcula vw_comprobante_total</div>
+        </div>
+      </div>
+      <div class="alerta" id="a18"></div>
+      <div class="acciones"><button class="btn btn-oro" type="submit" id="b18">Emitir comprobante</button>
+        <span class="bd">INSERT comprobante (trigger avanza serie_comprobante) → INSERT detalle_comprobante × n (trigger coherencia) · COMMIT</span></div>
+      <div id="r18"></div>
+    </form>
+
+    <!-- W19 -->
+    <form class="tarjeta" id="w19" novalidate hidden style="margin-top:0;border-top-left-radius:0">
+      <div class="campo"><label for="g-comp">Comprobante con saldo *</label><select id="g-comp"></select><span class="bd">vw_comprobante_saldo (PENDIENTE / PAGADO_PARCIAL)</span></div>
+      <div class="fila">
+        <div class="campo"><label for="g-monto">Monto pagado S/ *</label><input id="g-monto" type="number" min="0.01" step="0.01"><span class="bd">pago.monto (CHECK &gt; 0 · ≤ saldo)</span></div>
+        <div class="campo"><label for="g-medio">Medio de pago *</label><select id="g-medio"><option>YAPE</option><option>PLIN</option><option>TRANSFERENCIA</option><option>DEPOSITO</option><option>TARJETA</option><option>EFECTIVO</option></select><span class="bd">pago.medio_pago (CHECK)</span></div>
+      </div>
+      <div class="campo" style="margin-top:12px"><label for="g-op">N.° de operación</label><input id="g-op"><span class="bd">pago.nro_operacion (obligatorio si no es efectivo)</span></div>
+      <div class="alerta" id="a19"></div>
+      <div class="acciones"><button class="btn btn-oro" type="submit" id="b19">Registrar pago</button>
+        <span class="bd">INSERT pago → UPDATE cuota.estado (PAGADA / PAGADA_PARCIAL) → INSERT notificacion (CONSTANCIA_PAGO) · COMMIT</span></div>
+      <div id="r19"></div>
+    </form>
+
+    <!-- W21 -->
+    <form class="tarjeta" id="w21" novalidate hidden style="margin-top:0;border-top-left-radius:0">
+      <p class="origen" style="margin-top:0">Solo se cierra un caso sin plazos pendientes. Al cerrarlo se envía la encuesta de satisfacción.</p>
+      <div style="overflow-x:auto"><table class="tabla mini"><thead><tr><th>Caso</th><th>Cliente</th><th>Materia</th><th>Plazos pendientes</th><th>Saldo del cliente</th><th></th></tr></thead>
+        <tbody id="t-cerrar"></tbody></table></div>
+      <div class="bd">caso (ACTIVO) · COUNT(vw_plazo_estado ≠ CUMPLIDO) · Σ vw_comprobante_saldo.saldo</div>
+      <div class="alerta" id="a21"></div>
+      <div class="bd" style="display:block;margin-top:8px">UPDATE caso_etapa.fecha_fin → INSERT caso_etapa (Cerrado) → UPDATE caso (CERRADO, fecha_cierre) → INSERT encuesta → INSERT notificacion (ENVIO_ENCUESTA) → MongoDB encuestas (ENVIADA) · COMMIT</div>
+      <div id="r21"></div>
+    </form>
+
+    <!-- W22 -->
+    <form class="tarjeta" id="w22" novalidate hidden style="margin-top:0;border-top-left-radius:0">
+      <div class="dos-col">
+        <div>
+          <div class="campo"><label for="s-enc">Encuesta pendiente *</label><select id="s-enc"></select><span class="bd">encuesta (fecha_respuesta NULL)</span></div>
+          <div id="s-preguntas" style="margin-top:12px"></div>
+          <div class="campo" style="margin-top:12px"><label for="s-com">Comentario</label><textarea id="s-com" maxlength="500" style="min-height:70px"></textarea><span class="bd">encuesta.comentario + encuestas.comentario</span></div>
+          <div class="permiso-pub">
+            <label class="check" style="margin:0"><input type="checkbox" id="s-pub"> <b>El cliente autoriza publicar su comentario en la página web</b></label>
+            <div class="radios" id="s-firma">
+              <label><input type="radio" name="firma" value="NOMBRE"> Nombre e inicial (Carmen V.)</label>
+              <label><input type="radio" name="firma" value="INICIALES" checked> Solo iniciales (C. V.)</label>
+              <label><input type="radio" name="firma" value="ANONIMO"> Anónimo</label>
+            </div>
+            <span class="bd">solo MongoDB · encuestas.publicacion { autoriza, firma, nombre_publico, materia } — campo nuevo SIN ALTER TABLE</span>
+          </div>
+          <p class="origen" id="s-origen"></p>
+        </div>
+        <div>
+          <h2>Últimas respuestas</h2>
+          <div style="overflow-x:auto"><table class="tabla mini"><thead><tr><th>N.°</th><th>Caso</th><th>★</th><th>NPS</th><th></th></tr></thead><tbody id="t-enc"></tbody></table></div>
+          <div class="bd">SQL Server guarda solo calificación y NPS (para el dashboard); MongoDB guarda TODAS las respuestas</div>
+        </div>
+      </div>
+      <div class="alerta" id="a22"></div>
+      <div class="acciones"><button class="btn btn-oro" type="submit" id="b22">Guardar respuesta</button>
+        <span class="bd">UPDATE encuesta (calificacion 1-5, nps 0-10) → MongoDB encuestas (respuestas completas, RESPONDIDA) · COMMIT</span></div>
+      <div id="r22"></div>
+    </form>
+
+    <!-- Resultados de las encuestas -->
+    <section class="tarjeta" id="w22r" hidden style="margin-top:0">
+      <div class="enc-resumen">
+        <div class="enc-caja enc-prom"><small>Satisfacción</small><b id="r-prom">–</b><span class="est-txt" id="r-est">☆☆☆☆☆</span><em id="r-n">0 respuestas</em></div>
+        <div class="enc-caja"><small>Distribución de estrellas</small><div id="r-dist"></div></div>
+        <div class="enc-caja"><small>NPS (recomendación)</small><div class="nps-num" id="r-nps">–</div>
+          <div class="nps-barra"><span class="p" id="r-bp"></span><span class="n" id="r-bn"></span><span class="d" id="r-bd"></span></div>
+          <div class="nps-ley"><span><i style="background:#2E7D32"></i>Promotores 9–10: <b id="r-p">0</b></span><span><i style="background:#F9A825"></i>Pasivos 7–8: <b id="r-pa">0</b></span><span><i style="background:#C62828"></i>Detractores 0–6: <b id="r-d">0</b></span></div>
+          <span class="bd">NPS = % promotores − % detractores · SELECT sobre encuesta.nps</span></div>
+      </div>
+      <h2 style="margin-top:22px">Comentarios de los clientes</h2>
+      <p class="origen" style="margin-top:-6px">Vista interna con el nombre completo. En la página web solo aparecen los que el cliente autorizó, con la firma que eligió.</p>
+      <div class="comentarios" id="r-coment"></div>
+    </section>
 
     <div class="tarjeta">
-      <h2>Comprobantes y saldo (vw_comprobante_saldo) <span style="font-weight:400;color:var(--muted);font-size:13px">· ejemplo que ya funciona (GET api/panel/t4/comprobantes)</span></h2>
-      <div style="overflow-x:auto"><table class="tabla mini" id="t-ejemplo"><tbody><tr><td class="vacio">Cargando…</td></tr></tbody></table></div>
+      <h2>Comprobantes</h2>
+      <div style="overflow-x:auto"><table class="tabla mini"><thead><tr><th>N.°</th><th>Comprobante</th><th>Emisión</th><th>Cliente</th><th>Total</th><th>Pagado</th><th>Saldo</th><th>Estado</th></tr></thead>
+        <tbody id="t-comp"></tbody></table></div>
+      <div class="bd">vw_comprobante_saldo: total, pagado, saldo y estado de pago se calculan (no se guardan)</div>
     </div>
   </main>
 </div>
 <script src="../js/menu.js"></script>
-<script>
-(async () => {
-  const t = document.getElementById("t-ejemplo");
-  const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  try {
-    const r = await fetch("../api/panel/t4/comprobantes");
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || r.status);
-    if (!d.length) { t.innerHTML = '<tr><td class="vacio">Sin filas.</td></tr>'; return; }
-    const cols = Object.keys(d[0]);
-    t.innerHTML = "<thead><tr>" + cols.map((c) => "<th>" + esc(c) + "</th>").join("") + "</tr></thead><tbody>"
-      + d.map((f) => "<tr>" + cols.map((c) => "<td>" + esc(f[c]) + "</td>").join("") + "</tr>").join("") + "</tbody>";
-  } catch (e) { t.innerHTML = '<tr><td class="vacio" style="color:var(--rojo)">' + esc(e.message) + "</td></tr>"; }
-})();
-</script>
+<script src="../js/comun.js"></script>
+<script src="../js/t4.js"></script>
 </body>
 </html>

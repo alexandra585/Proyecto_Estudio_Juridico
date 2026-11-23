@@ -3,58 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Magallanes-Montero Abogados · Lima</title>
+  <title>Magallanes-Montero Abogados · Estudio jurídico en Lima</title>
+  <meta name="description" content="Estudio jurídico en Lima: civil, familia, laboral, penal, comercial y administrativo. Primera evaluación sin compromiso.">
   <link rel="stylesheet" href="css/estilos.css">
+  <link rel="stylesheet" href="css/landing.css">
   <script src="js/bd.js"></script>
 </head>
-<body>
+<body class="landing">
+
+<!-- ===================== BARRA DE CONTACTO ===================== -->
+<div class="topbar">
+  <div class="contenedor">
+    <span>📍 Av. Arequipa 1830, Lince, Lima</span>
+    <span>🕘 Lun a vie 9:00 – 18:00 · sáb 9:00 – 13:00</span>
+    <a href="tel:014567890">📞 (01) 456 7890</a>
+  </div>
+</div>
 
 <!-- ===================== ENCABEZADO ===================== -->
-<header class="cabecera">
+<header class="cabecera" id="cabecera">
   <div class="contenedor">
     <a class="logo" href="#inicio"><span class="logo-mm">MM</span><span><b>Magallanes-Montero</b><small>ABOGADOS</small></span></a>
-    <nav class="menu">
-      <a href="#areas">Áreas de práctica</a>
-      <a href="#pasos">Cómo trabajamos</a>
-      <a href="#socios">Nosotros</a>
-      <a href="#contacto">Contacto</a>
+    <nav class="menu" id="menu">
+      <a href="#areas">Áreas</a>
+      <a href="#por-que">Por qué nosotros</a>
+      <a href="#equipo">Equipo</a>
+      <a href="#testimonios">Opiniones</a>
+      <a href="#faq">Preguntas</a>
     </nav>
-    <a class="btn btn-oro" href="#contacto">Cuéntenos su caso</a>
-    <!-- Ícono de acceso al panel administrativo (W02 · login contra la tabla USUARIO) -->
+    <a class="btn btn-oro btn-cab" href="#contacto">Cuéntenos su caso</a>
+    <!-- Acceso al panel administrativo (W02 · login contra la tabla USUARIO) -->
     <a class="candado" href="panel/login.html" aria-label="Acceso al panel">
       <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-      <span class="tip">Acceso al panel</span>
+      <span class="tip">Acceso al panel del estudio</span>
     </a>
+    <button class="hamb-l" type="button" aria-label="Abrir menú" onclick="document.body.classList.toggle('nav-abierta')">☰</button>
   </div>
 </header>
 
 <!-- ===================== HERO ===================== -->
 <section class="hero" id="inicio">
+  <svg class="hero-balanza" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 20v150M60 170h80M40 60h120M100 30l-6 30h12z"/><path d="M40 60l-24 50h48zM160 60l-24 50h48z"/><path d="M16 110a24 12 0 0 0 48 0M136 110a24 12 0 0 0 48 0"/></svg>
   <div class="contenedor">
-    <div>
-      <h1>Defendemos lo que<br><span>más le importa.</span></h1>
-      <p>Asesoría legal en civil, familia, laboral, penal y empresas. Un abogado revisa su consulta y le responde por WhatsApp en menos de 24 horas.</p>
+    <div class="hero-txt">
+      <span class="pill">⚖️ Estudio jurídico en Lima desde 2010</span>
+      <h1>Defendemos lo que <em>más le importa</em>.</h1>
+      <p>Asesoría legal clara y cercana en civil, familia, laboral, penal y empresas. Un abogado revisa su caso y le responde por WhatsApp en menos de 24 horas.</p>
       <div class="acciones">
-        <a class="btn btn-oro" href="#contacto">Cuéntenos su caso</a>
-        <a class="btn btn-borde" href="#areas">Ver áreas de práctica</a>
+        <a class="btn btn-oro btn-grande" href="#contacto">Cuéntenos su caso →</a>
+        <a class="btn btn-borde btn-grande" href="#areas">Ver áreas de práctica</a>
       </div>
-      <div class="cifras">
-        <div><b>+15</b><span>años de experiencia</span></div>
-        <div><b>98 %</b><span>casos con seguimiento al día</span></div>
-        <div><b>24 h</b><span>primera respuesta</span></div>
-      </div>
+      <ul class="confianza">
+        <li>✓ Primera evaluación sin costo</li>
+        <li>✓ Honorarios por escrito</li>
+        <li>✓ Siga su expediente en línea</li>
+      </ul>
     </div>
-    <aside class="urgencia">
+    <aside class="hero-card">
+      <div class="hc-cab"><span class="dot"></span> Abogados disponibles hoy</div>
       <h3>¿Tiene una urgencia legal?</h3>
-      <small>Audiencia próxima, notificación o plazo por vencer.</small>
+      <p>Audiencia próxima, notificación judicial o un plazo por vencer: lo revisamos el mismo día.</p>
       <ul>
-        <li>Revisamos su caso el mismo día</li>
-        <li>Le decimos si hay conflicto de interés</li>
-        <li>Propuesta de honorarios clara, por escrito</li>
-        <li>Siga su expediente en el portal del cliente</li>
+        <li><b>1</b><span>Nos cuenta su caso en 2 minutos</span></li>
+        <li><b>2</b><span>Verificamos conflicto de interés</span></li>
+        <li><b>3</b><span>Le llamamos y agendamos su cita</span></li>
       </ul>
       <a class="btn btn-navy" href="#contacto" onclick="marcarUrgente()">Escribir mi caso urgente</a>
+      <div class="hc-rating"><span class="estrellas" id="estrellas">★★★★★</span><span><b id="promedio">–</b> <small id="satisf-texto">satisfacción de nuestros clientes</small></span></div>
+      <span class="bd">AVG(encuesta.calificacion)</span>
     </aside>
+  </div>
+</section>
+
+<!-- ===================== CIFRAS (calculadas en SQL Server) ===================== -->
+<section class="cifras-banda">
+  <div class="contenedor">
+    <div><b>+15</b><span>años de experiencia</span></div>
+    <div><b id="c-casos">–</b><span>casos patrocinados</span><span class="bd">COUNT(caso)</span></div>
+    <div><b id="c-clientes">–</b><span>clientes que confiaron</span><span class="bd">COUNT(DISTINCT contrato.id_cliente)</span></div>
+    <div><b id="c-abogados">–</b><span>abogados colegiados</span><span class="bd">abogado + empleado.activo</span></div>
+    <div><b>24 h</b><span>primera respuesta</span></div>
   </div>
 </section>
 
@@ -64,50 +92,93 @@
     <div class="titulo-centro">
       <div class="etiqueta-seccion">Áreas de práctica</div>
       <h2>¿En qué podemos ayudarle?</h2>
+      <p class="sub">Elija su tema y vaya directo al formulario con la materia ya seleccionada.</p>
       <span class="bd">SELECT materia.nombre, materia.descripcion</span>
     </div>
     <div class="grid-areas" id="areas-lista"><p>Cargando áreas…</p></div>
   </div>
 </section>
 
-<!-- ===================== PASOS ===================== -->
-<section class="seccion pasos-fondo" id="pasos">
-  <div class="contenedor">
-    <div class="titulo-centro">
-      <div class="etiqueta-seccion">Cómo trabajamos</div>
-      <h2>De su consulta a su expediente, en 4 pasos</h2>
+<!-- ===================== POR QUÉ NOSOTROS ===================== -->
+<section class="seccion fondo-crema" id="por-que">
+  <div class="contenedor dos">
+    <div>
+      <div class="etiqueta-seccion">Por qué elegirnos</div>
+      <h2 class="h2-izq">Un estudio que le explica, le avisa y le rinde cuentas</h2>
+      <p class="sub">Trabajamos con un sistema propio de gestión de expedientes: cada plazo, audiencia y pago queda registrado y usted lo puede seguir.</p>
+      <div class="pasos-linea">
+        <div class="pl"><span>1</span><div><b>Consulta</b><small>Nos cuenta su caso aquí o por WhatsApp.</small></div><span class="bd">consulta</span></div>
+        <div class="pl"><span>2</span><div><b>Evaluación y cita</b><small>Revisamos conflictos de interés y agendamos.</small></div><span class="bd">cita</span></div>
+        <div class="pl"><span>3</span><div><b>Propuesta y contrato</b><small>Honorarios claros, en cuotas si lo necesita.</small></div><span class="bd">propuesta · contrato · cuota</span></div>
+        <div class="pl"><span>4</span><div><b>Expediente abierto</b><small>Le avisamos de cada escrito, plazo y audiencia.</small></div><span class="bd">caso · plazo · notificacion</span></div>
+      </div>
     </div>
-    <div class="pasos">
-      <div class="paso"><div class="num">1</div><h3>Consulta</h3><p>Nos cuenta su caso aquí o por WhatsApp.</p><span class="bd">consulta</span></div>
-      <div class="paso"><div class="num">2</div><h3>Evaluación</h3><p>Revisamos conflictos y agendamos su cita.</p><span class="bd">cita</span></div>
-      <div class="paso"><div class="num">3</div><h3>Propuesta</h3><p>Honorarios claros y contrato firmado.</p><span class="bd">propuesta · contrato</span></div>
-      <div class="paso"><div class="num">4</div><h3>Expediente</h3><p>Abrimos su caso y lo sigue en el portal.</p><span class="bd">caso</span></div>
+    <div class="ventajas">
+      <article><i>🛡️</i><h3>Sin conflicto de interés</h3><p>Antes de aceptar su caso verificamos que no representemos a la otra parte.</p></article>
+      <article><i>⏱️</i><h3>Plazos bajo control</h3><p>Calculamos cada plazo en días hábiles, con feriados, y le avisamos antes de que venza.</p></article>
+      <article><i>📄</i><h3>Honorarios por escrito</h3><p>Propuesta detallada y contrato firmado. Sin sorpresas ni cobros ocultos.</p></article>
+      <article><i>💬</i><h3>Siempre informado</h3><p>Constancias de pago, avisos de audiencia y avances por WhatsApp o correo.</p></article>
     </div>
   </div>
 </section>
 
-<!-- ===================== SOCIOS (EMPLEADO + ABOGADO + ABOGADO_MATERIA) ===================== -->
-<section class="seccion" id="socios">
+<!-- ===================== EQUIPO (EMPLEADO + ABOGADO + ABOGADO_MATERIA) ===================== -->
+<section class="seccion" id="equipo">
   <div class="contenedor">
-    <div class="etiqueta-seccion">Nosotros</div>
-    <h2 style="color:var(--navy);font-size:32px">Socios del estudio</h2>
-    <p style="color:var(--muted);margin-top:0">Abogados colegiados con experiencia en litigio y asesoría preventiva.</p>
+    <div class="titulo-centro">
+      <div class="etiqueta-seccion">Nuestro equipo</div>
+      <h2>Abogados colegiados, con nombre y apellido</h2>
+      <p class="sub">Su caso lo lleva siempre un abogado responsable, no un número de ticket.</p>
+    </div>
     <div class="grid-socios" id="socios-lista"><p>Cargando…</p></div>
-    <span class="bd">empleado.nombres</span> <span class="bd">abogado.nro_colegiatura</span> <span class="bd">abogado_materia.id_materia</span>
+    <div style="text-align:center"><span class="bd">empleado.nombres</span> <span class="bd">abogado.nro_colegiatura</span> <span class="bd">abogado_materia.id_materia</span></div>
+  </div>
+</section>
+
+<!-- ===================== TESTIMONIOS (MongoDB · encuestas autorizadas) ===================== -->
+<section class="seccion fondo-navy" id="testimonios">
+  <div class="contenedor">
+    <div class="titulo-centro">
+      <div class="etiqueta-seccion">Lo que dicen nuestros clientes</div>
+      <h2>Opiniones reales, publicadas con su permiso</h2>
+      <p class="sub" id="t-sub">Al cerrar cada caso enviamos una encuesta de satisfacción.</p>
+      <span class="bd">MongoDB · encuestas.publicacion.autoriza = true · respuestas.calificacion ≥ 4</span>
+    </div>
+    <div class="testimonios" id="testimonios-lista"></div>
+  </div>
+</section>
+
+<!-- ===================== PREGUNTAS FRECUENTES ===================== -->
+<section class="seccion" id="faq">
+  <div class="contenedor faq-cont">
+    <div>
+      <div class="etiqueta-seccion">Preguntas frecuentes</div>
+      <h2 class="h2-izq">Lo que nos preguntan antes de contratar</h2>
+      <p class="sub">¿Tiene otra duda? Escríbanos en el formulario y le respondemos.</p>
+      <a class="btn btn-oro" href="#contacto">Hacer una consulta</a>
+    </div>
+    <div class="faq">
+      <details open><summary>¿La primera consulta tiene costo?</summary><p>No. Revisamos su caso sin compromiso y le explicamos sus opciones. Si decide continuar, le enviamos una propuesta de honorarios por escrito.</p></details>
+      <details><summary>¿Puedo pagar los honorarios en cuotas?</summary><p>Sí. En el contrato se fija un cronograma de cuotas y por cada pago recibe su comprobante y una constancia por WhatsApp.</p></details>
+      <details><summary>¿Cómo sé en qué etapa está mi caso?</summary><p>Le avisamos de cada escrito presentado, resolución y audiencia. Además, cada caso tiene un expediente digital con su historial.</p></details>
+      <details><summary>¿Qué pasa si el estudio ya representa a la otra parte?</summary><p>Antes de agendar su cita revisamos el conflicto de interés. Si existe, se lo decimos de inmediato para que busque otro abogado a tiempo.</p></details>
+      <details><summary>¿Atienden de forma virtual?</summary><p>Sí. Las citas pueden ser presenciales en Lince o virtuales por videollamada.</p></details>
+    </div>
   </div>
 </section>
 
 <!-- ===================== FORMULARIO «CUÉNTENOS SU CASO» (transacción T1) ===================== -->
 <section class="seccion contacto" id="contacto">
   <div class="contenedor">
-    <div>
+    <div class="contacto-info">
       <div class="etiqueta-seccion">Cuéntenos su caso</div>
       <h2>Primera evaluación<br><span>sin compromiso</span></h2>
       <p>Complete el formulario y un abogado le escribirá por WhatsApp en menos de 24 horas.</p>
-      <div class="dato"><i></i><div><small>Dirección</small><span>Av. Arequipa 1830, Lince, Lima</span></div></div>
-      <div class="dato"><i></i><div><small>Teléfono</small><span>(01) 456 7890</span></div></div>
-      <div class="dato"><i></i><div><small>Horario</small><span>Lun a vie 9:00 – 18:00 · sáb 9:00 – 13:00</span></div></div>
-      <div class="caja-registro">
+      <div class="dato"><i>📍</i><div><small>Dirección</small><span>Av. Arequipa 1830, Lince, Lima</span></div></div>
+      <div class="dato"><i>📞</i><div><small>Teléfono</small><span>(01) 456 7890</span></div></div>
+      <div class="dato"><i>🕘</i><div><small>Horario</small><span>Lun a vie 9:00 – 18:00 · sáb 9:00 – 13:00</span></div></div>
+      <div class="garantia">🔒 Sus datos se tratan de forma confidencial según la Ley 29733 de Protección de Datos Personales.</div>
+      <div class="caja-registro bd-bloque">
         <b>Al enviar se registra (una sola transacción):</b>
         PERSONA (si es nueva) → CONSULTA (canal LANDING, estado RECIBIDA) → CONSULTA_CONTRAPARTE → NOTIFICACION por WhatsApp (CONFIRMACION_CONSULTA).
       </div>
@@ -116,7 +187,7 @@
     <div class="form-tarjeta">
       <div id="form-zona">
         <h3>Formulario de consulta</h3>
-        <small>Los campos con * son obligatorios</small>
+        <small>Los campos con * son obligatorios · toma 2 minutos</small>
         <form id="form-consulta" novalidate>
           <div class="fila">
             <div class="campo"><label for="nombres">Nombres *</label><input id="nombres" maxlength="80" autocomplete="given-name"><span class="msg"></span><span class="bd">persona.nombres</span></div>
@@ -164,30 +235,22 @@
   </div>
 </section>
 
-<!-- ===================== SATISFACCIÓN (ENCUESTA) ===================== -->
-<section class="seccion" style="padding-top:48px;padding-bottom:48px">
-  <div class="contenedor">
-    <div class="satisf">
-      <b id="promedio">–</b><span class="estrellas" id="estrellas">★★★★★</span>
-      <span class="bd">AVG(encuesta.calificacion)</span>
-      <p id="satisf-texto">Calificación promedio de nuestros clientes al cerrar su caso (encuesta de satisfacción).</p>
-    </div>
-  </div>
-</section>
-
 <!-- ===================== PIE ===================== -->
 <footer class="pie">
   <div class="contenedor">
-    <div><a class="logo" href="#inicio"><span class="logo-mm">MM</span><span><b>Magallanes-Montero Abogados</b></span></a><p>Estudio jurídico · Lima, Perú</p></div>
+    <div><a class="logo" href="#inicio"><span class="logo-mm">MM</span><span><b>Magallanes-Montero</b><small>ABOGADOS</small></span></a>
+      <p>Estudio jurídico en Lima. Litigio y asesoría preventiva para personas, empresas y entidades públicas.</p></div>
     <div><h4>Áreas</h4><div id="pie-areas"></div></div>
-    <div><h4>Estudio</h4><a href="#socios">Nosotros</a><a href="#pasos">Cómo trabajamos</a><a href="#contacto">Contacto</a></div>
-    <div><h4>Clientes</h4><a href="#contacto">Nueva consulta</a><a href="#">Portal del cliente</a><a href="#">Libro de reclamaciones</a></div>
-    <div><a class="btn-panel" href="panel/login.html">🔒 Panel del estudio</a></div>
+    <div><h4>Estudio</h4><a href="#equipo">Equipo</a><a href="#por-que">Cómo trabajamos</a><a href="#faq">Preguntas frecuentes</a><a href="#contacto">Contacto</a></div>
+    <div><h4>Clientes</h4><a href="#contacto">Nueva consulta</a><a href="#">Portal del cliente</a><a href="#">Libro de reclamaciones</a>
+      <a class="btn-panel" href="panel/login.html">🔒 Panel del estudio</a></div>
     <div class="final">© 2026 Magallanes-Montero Abogados · Proyecto Base de Datos II – UTP</div>
   </div>
 </footer>
 
-<a class="wsp" href="#contacto" aria-label="Escribir">💬</a>
+<a class="wsp" href="#contacto" aria-label="Escribir por WhatsApp" title="Escríbanos">
+  <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1a3.5 3.5 0 0 1-2-2l1-1-1-2z"/></svg>
+</a>
 
 <script src="js/landing.js"></script>
 </body>

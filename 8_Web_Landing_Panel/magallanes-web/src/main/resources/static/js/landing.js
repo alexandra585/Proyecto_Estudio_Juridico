@@ -3,6 +3,8 @@
 // GET  /api/publico/materias      → tabla MATERIA
 // GET  /api/publico/socios        → EMPLEADO + ABOGADO + ABOGADO_MATERIA
 // GET  /api/publico/calificacion  → AVG(ENCUESTA.calificacion)
+// GET  /api/publico/cifras        → COUNT(caso), clientes, abogados (SQL Server)
+// GET  /api/publico/testimonios   → MongoDB encuestas con publicacion.autoriza = true
 // POST /api/publico/consultas     → transacción T1
 // =====================================================================
 const $ = (id) => document.getElementById(id);
@@ -16,19 +18,32 @@ async function api(url, opciones) {
 
 const escapar = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// ---------- Áreas de práctica y combo «Materia»
+// ---------- Áreas de práctica y combo «Materia» (ícono según el nombre de la materia)
+const ICONO_AREA = [
+  [/famil/i, '<circle cx="8" cy="7" r="3"/><circle cx="17" cy="8" r="2.5"/><path d="M2 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><path d="M14 20c0-2.6 1.3-4.6 3-4.6s4 2 4 4.6"/>'],
+  [/labor/i, '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>'],
+  [/penal/i, '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>'],
+  [/comerc|empres|societ/i, '<path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01M10 21v-4h4v4"/>'],
+  [/admin|públic|public/i, '<path d="M3 10l9-6 9 6"/><path d="M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18"/>'],
+  [/civil/i, '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>'],
+];
+const ICONO_DEF = '<path d="M12 3v17M7 20h10M4 7h16M12 4l-1 3h2z"/><path d="M4 7l-3 6h6zM20 7l-3 6h6z"/>';
+const iconoArea = (n) => (ICONO_AREA.find(([r]) => r.test(n)) || [null, ICONO_DEF])[1];
+
 async function cargarMaterias() {
   try {
     const materias = await api("api/publico/materias");
     $("areas-lista").innerHTML = materias.map((m) => `
-      <article class="area">
-        <span class="inicial">${escapar(m.nombre[0])}</span><h3>${escapar(m.nombre)}</h3>
+      <article class="area revelar">
+        <span class="ico-area"><svg viewBox="0 0 24 24">${iconoArea(m.nombre)}</svg></span>
+        <h3>${escapar(m.nombre)}</h3>
         <p>${escapar(m.descripcion || "")}</p>
-        <a onclick="elegirMateria(${m.idMateria})">Consultar →</a>
+        <a onclick="elegirMateria(${m.idMateria})">Consultar sobre ${escapar(m.nombre.toLowerCase())} →</a>
       </article>`).join("");
     $("idMateria").innerHTML = '<option value="">Seleccione…</option>' +
       materias.map((m) => `<option value="${m.idMateria}">${escapar(m.nombre)}</option>`).join("");
-    $("pie-areas").innerHTML = materias.slice(0, 4).map((m) => `<a href="#areas">${escapar(m.nombre)}</a>`).join("");
+    $("pie-areas").innerHTML = materias.slice(0, 5).map((m) => `<a href="#areas">${escapar(m.nombre)}</a>`).join("");
+    revelar();
   } catch (e) {
     $("areas-lista").innerHTML = `<p class="alerta mal" style="display:block">No se pudo conectar con la base de datos: ${escapar(e.message)}</p>`;
     $("idMateria").innerHTML = '<option value="">(sin conexión a SQL Server)</option>';
@@ -44,22 +59,26 @@ function elegirMateria(id) {
 
 function marcarUrgente() { $("esUrgente").checked = true; }
 
-// ---------- Socios
+// ---------- Equipo (abogados)
 async function cargarSocios() {
   try {
     const socios = await api("api/publico/socios");
-    $("socios-lista").innerHTML = socios.map((s) => `
-      <article class="socio">
+    $("socios-lista").innerHTML = socios.map((s, i) => `
+      <article class="socio revelar">
+        <div class="franja"></div>
         <div class="av">${escapar(s.iniciales)}</div>
-        <div><b>${escapar(s.nombre)}</b><small>${escapar(s.materias || "")}</small></div>
-        <div class="col"><b>Colegiatura:</b> ${escapar(s.colegiatura)}</div>
+        <b>${escapar(s.nombre)}</b>
+        <span class="cargo">${i < 2 ? "Socio fundador" : "Abogado asociado"}</span>
+        <div class="chips-m">${String(s.materias || "").split(" · ").filter(Boolean).map((m) => `<span>${escapar(m)}</span>`).join("")}</div>
+        <div class="col">Colegiatura ${escapar(s.colegiatura)}</div>
       </article>`).join("");
+    revelar();
   } catch (e) {
     $("socios-lista").innerHTML = "";
   }
 }
 
-// ---------- Calificación promedio (ENCUESTA)
+// ---------- Calificación promedio (ENCUESTA) y cifras (SQL Server)
 async function cargarCalificacion() {
   try {
     const c = await api("api/publico/calificacion");
@@ -67,9 +86,55 @@ async function cargarCalificacion() {
     $("promedio").textContent = Number(c.promedio).toFixed(1) + " / 5";
     const llenas = Math.round(c.promedio);
     $("estrellas").textContent = "★".repeat(llenas) + "☆".repeat(5 - llenas);
-    $("satisf-texto").textContent = `Calificación promedio de ${c.respuestas} clientes al cerrar su caso (encuesta de satisfacción).`;
+    $("satisf-texto").textContent = `según ${c.respuestas} encuesta(s) de clientes`;
   } catch (e) { /* sin datos: se deja el texto por defecto */ }
 }
+
+function contar(el, fin) {
+  const n = Number(fin) || 0, t0 = performance.now();
+  const paso = (t) => { const k = Math.min(1, (t - t0) / 1200); el.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+async function cargarCifras() {
+  try {
+    const c = await api("api/publico/cifras");
+    contar($("c-casos"), c.casos); contar($("c-clientes"), c.clientes); contar($("c-abogados"), c.abogados);
+  } catch (e) { /* se quedan los guiones */ }
+}
+
+// ---------- Testimonios: SOLO los que el cliente autorizó en la encuesta (MongoDB)
+async function cargarTestimonios() {
+  const caja = $("testimonios-lista");
+  try {
+    const [t, c] = await Promise.all([api("api/publico/testimonios"), api("api/publico/calificacion").catch(() => ({}))]);
+    if (!t.length) {
+      caja.innerHTML = `<div class="sin-testimonios"><b>${c.promedio != null ? Number(c.promedio).toFixed(1) + " / 5" : "★★★★★"}</b>
+        ${c.respuestas ? `Calificación promedio de ${c.respuestas} cliente(s) al cerrar su caso.` : "Muy pronto, las opiniones de nuestros clientes."}
+        Publicamos comentarios solo cuando el cliente nos da su permiso.</div>`;
+      return;
+    }
+    $("t-sub").textContent = c.respuestas ? `Promedio ${Number(c.promedio).toFixed(1)} / 5 en ${c.respuestas} encuesta(s). Publicamos solo los comentarios que el cliente autorizó.` : $("t-sub").textContent;
+    const ini = (n) => String(n).replace(/\./g, "").split(/\s+/).filter(Boolean).map((x) => x[0]).slice(0, 2).join("").toUpperCase();
+    caja.innerHTML = t.map((x) => `
+      <article class="testimonio revelar">
+        <div class="est">${"★".repeat(x.estrellas || 5)}${"☆".repeat(5 - (x.estrellas || 5))}</div>
+        <p>${escapar(x.comentario)}</p>
+        <div class="quien"><span class="av">${escapar(ini(x.nombre))}</span><span><b>${escapar(x.nombre)}</b><small>${escapar(x.materia || "")}${x.fecha ? " · " + escapar(x.fecha) : ""}</small></span></div>
+      </article>`).join("");
+    revelar();
+  } catch (e) { caja.innerHTML = ""; }
+}
+
+// ---------- Efectos: sombra de la cabecera y aparición al hacer scroll
+window.addEventListener("scroll", () => $("cabecera").classList.toggle("sombra", scrollY > 10), { passive: true });
+const observador = "IntersectionObserver" in window
+  ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("visible"); observador.unobserve(e.target); } }), { threshold: .12 })
+  : null;
+function revelar() {
+  document.querySelectorAll(".revelar:not(.visible)").forEach((el) => observador ? observador.observe(el) : el.classList.add("visible"));
+}
+document.querySelectorAll(".ventajas article, .pl, .faq details, .hero-card").forEach((el) => el.classList.add("revelar"));
+document.querySelectorAll(".menu a").forEach((a) => a.addEventListener("click", () => document.body.classList.remove("nav-abierta")));
 
 // ---------- Contraparte: persona o empresa
 document.querySelectorAll('input[name="cpTipo"]').forEach((r) => r.addEventListener("change", () => {
@@ -161,3 +226,6 @@ $("form-consulta").addEventListener("submit", async (ev) => {
 cargarMaterias();
 cargarSocios();
 cargarCalificacion();
+cargarCifras();
+cargarTestimonios();
+revelar();

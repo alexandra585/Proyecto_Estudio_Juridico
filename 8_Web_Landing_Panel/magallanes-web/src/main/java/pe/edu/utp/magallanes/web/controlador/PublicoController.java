@@ -15,6 +15,11 @@ import pe.edu.utp.magallanes.web.dto.Socio;
 import pe.edu.utp.magallanes.web.dto.SolicitudConsulta;
 import pe.edu.utp.magallanes.web.repositorio.ConsultaRepositorio;
 import pe.edu.utp.magallanes.web.repositorio.PublicoRepositorio;
+import pe.edu.utp.magallanes.web.mongo.MongoDocumentos;
+import org.bson.Document;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Servicios de la Landing Page (sin inicio de sesión). */
 @RestController
@@ -22,10 +27,40 @@ import pe.edu.utp.magallanes.web.repositorio.PublicoRepositorio;
 public class PublicoController {
     private final PublicoRepositorio publico;
     private final ConsultaRepositorio consultas;
+    private final MongoDocumentos mongo;
 
-    public PublicoController(PublicoRepositorio publico, ConsultaRepositorio consultas) {
+    public PublicoController(PublicoRepositorio publico, ConsultaRepositorio consultas, MongoDocumentos mongo) {
         this.publico = publico;
         this.consultas = consultas;
+        this.mongo = mongo;
+    }
+
+    /** Cifras reales de la landing (SQL Server): casos, clientes, abogados y satisfacción. */
+    @GetMapping("/cifras")
+    public Map<String, Object> cifras() throws SQLException { return publico.cifras(); }
+
+    /**
+     * Testimonios de la landing: SOLO comentarios que el cliente autorizó publicar en la encuesta (W22).
+     * El permiso y el nombre con el que firma están en MongoDB «encuestas.publicacion». Nunca se muestra el nombre completo
+     * si el cliente eligió iniciales o anónimo.
+     */
+    @GetMapping("/testimonios")
+    public List<Map<String, Object>> testimonios() {
+        List<Map<String, Object>> r = new ArrayList<>();
+        if (!mongo.disponible()) return r;
+        for (Document d : mongo.testimonios(6)) {
+            Document pub = d.get("publicacion", Document.class);
+            Document resp = d.get("respuestas", Document.class);
+            Map<String, Object> t = new LinkedHashMap<>();
+            t.put("nombre", pub == null ? "Cliente del estudio" : pub.getString("nombre_publico"));
+            t.put("materia", pub == null ? null : pub.getString("materia"));
+            t.put("estrellas", resp == null ? null : resp.get("calificacion"));
+            t.put("comentario", d.getString("comentario"));
+            Object f = d.get("respondida");
+            t.put("fecha", f instanceof java.util.Date fd ? new java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.forLanguageTag("es-PE")).format(fd) : null);
+            r.add(t);
+        }
+        return r;
     }
 
     @GetMapping("/materias")

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inicio · Panel Magallanes-Montero</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/bd.js"></script>
+</head>
+<body class="panel">
+<div class="app">
+  <aside id="lateral" data-activo="inicio"></aside>
+  <main class="principal">
+    <section class="bienvenida">
+      <div>
+        <div class="saludo" id="saludo">Buen día</div>
+        <h1 id="titulo-inicio">Cargando…</h1>
+        <p id="sub-inicio" class="solo-cli">Esto es lo que tiene pendiente hoy.</p>
+        <p class="solo-tec">Inicio por rol · GET /api/panel/inicio · el rol sale de <b>empleado.cargo</b> (sin tabla de roles, 3FN) · solo lectura</p>
+      </div>
+      <div class="accesos" id="accesos"></div>
+    </section>
+    <div class="kpis-inicio" id="kpis"></div>
+    <div class="listas-inicio" id="listas"></div>
+    <div class="alerta" id="alerta"></div>
+  </main>
+</div>
+<script src="../js/menu.js"></script>
+<script src="../js/comun.js"></script>
+<script src="../js/inicio.js"></script>
+</body>
+</html>

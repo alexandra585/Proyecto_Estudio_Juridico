@@ -4,3 +4,5 @@ target/
 .idea/
 *.iml
 ~$*
+# Configuración local con contraseñas: no se sube (use .env.example como plantilla)
+.env

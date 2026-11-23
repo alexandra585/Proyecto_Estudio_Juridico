@@ -6,7 +6,7 @@ normalización, prototipo en Figma, dashboard gerencial y la aplicación web (Ja
 
 * Prototipo en Figma: https://www.figma.com/design/JyHrpDAn41uGzJNggzBJsa/MM-Abogados---Prototipo-BD-v36
   (página «Prototipo · técnico (con campos BD)» y página «Prototipo · cliente (sin campos BD)»)
-* Base de datos de trabajo: `magallanes_montero_prueba36` (SQL Server 2022)
+* Base de datos de trabajo: `magallanes_montero_prueba36` (SQL Server 2022 o superior) + MongoDB `magallanes_montero`
 
 ## Estructura del repositorio
 
@@ -35,7 +35,7 @@ git --version
 ```
 
 Se necesita **Java 17 o superior**, **Maven**, **Git**, **SQL Server** y **SQL Server Management Studio (SSMS)**.
-MongoDB (Community + Compass) es opcional: la web arranca aunque no esté instalado.
+MongoDB (Community + Compass) se usa en W09, W11, W13, W21 y W22; si no está instalado la web arranca igual.
 
 ### 2. Descargar el proyecto (recomendado: con Git, para poder subir cambios)
 
@@ -56,7 +56,8 @@ Abrir cada archivo y ejecutarlo con **F5**, en este orden:
 | 1 | `1_SQL_Server/magallanes_montero_sqlserver_v36.sql` | **Ctrl+H** → buscar `magallanes_montero` → reemplazar por `magallanes_montero_prueba36` → **Reemplazar todo** |
 | 2 | `1_SQL_Server/magallanes_montero_datos_prueba_v36.sql` | El mismo **Ctrl+H** |
 | 3 | `1_SQL_Server/magallanes_montero_vistas_dashboard.sql` | Nada |
-| 4 | `8_Web_Landing_Panel/magallanes-web/sql/01_preparar_base_para_la_web.sql` | Nada (crea el usuario `app_magallanes` y las contraseñas de prueba) |
+| 4 | `1_SQL_Server/magallanes_montero_dashboard_filtros.sql` | Nada (funciones del filtro por periodo del dashboard) |
+| 5 | `8_Web_Landing_Panel/magallanes-web/sql/01_preparar_base_para_la_web.sql` | Nada (crea el usuario `app_magallanes` y las contraseñas de prueba) |
 
 > El reemplazo hace falta porque los scripts 1 y 2 crean la base como `magallanes_montero`, y la aplicación usa `magallanes_montero_prueba36`.
 
@@ -72,22 +73,20 @@ Abrir cada archivo y ejecutarlo con **F5**, en este orden:
    EXEC xp_readerrorlog 0, 1, N'Server is listening on';
    ```
 
-   y poner ese número en lugar de `55448` en
-   `8_Web_Landing_Panel/magallanes-web/src/main/resources/application.properties`:
+4. **Archivo `.env`** (los datos de SU computadora; no se sube a GitHub): en `8_Web_Landing_Panel/magallanes-web`
 
    ```
-   spring.datasource.url=jdbc:sqlserver://localhost:PUERTO;databaseName=magallanes_montero_prueba36;encrypt=true;trustServerCertificate=true
+   copy .env.example .env
    ```
 
-4. Para que Git no suba su puerto y les cambie la configuración a los demás:
+   y en `.env` cambiar `DB_PORT` por su puerto (1433 en la instancia por defecto, por ejemplo 55448 en una instancia con nombre).
+   Ya **no** hay que modificar `application.properties`: lee los valores del `.env`.
 
-   ```
-   git update-index --assume-unchanged 8_Web_Landing_Panel/magallanes-web/src/main/resources/application.properties
-   ```
+### 5. MongoDB
 
-### 5. MongoDB (opcional)
-
-MongoDB Compass → pestaña *Mongosh* → pegar y ejecutar `2_MongoDB/mongodb_colecciones.js`.
+Encender el servicio **MongoDB Server** y, en MongoDB Compass → pestaña *Mongosh*, pegar y ejecutar `2_MongoDB/mongodb_colecciones.js`.
+Lo usan W09 (`expedientes`), W11/W13 (`archivos`) y W21/W22 (`encuestas`). Si MongoDB está apagado, la web funciona igual
+y graba solo en SQL Server (la pantalla lo avisa).
 
 ### 6. Correr la aplicación
 
@@ -98,10 +97,15 @@ mvn spring-boot:run
 
 Abrir http://localhost:8080. La primera vez tarda porque Maven descarga las librerías (se necesita internet).
 
-| Usuario del panel | Contraseña | Rol |
-|---|---|---|
-| `karen.paredes@mmabogados.pe` | `Secretaria2026!` | Secretaria |
-| `hector.magallanes@mmabogados.pe` | `Abogado2026!` | Abogado |
+Ejecutar una vez en SSMS `8_Web_Landing_Panel/magallanes-web/sql/05_roles_contrasenas_de_prueba.sql` (contraseñas de prueba por rol).
+El rol sale de `empleado.cargo` (sin tabla nueva): cada rol ve su menú y el servidor bloquea lo demás (403).
+
+| Usuario del panel | Contraseña | Rol | Qué ve |
+|---|---|---|---|
+| `gabriela.montero@mmabogados.pe` | `Gerencia2026!` | ADMINISTRADOR (Gerencia) | Todo |
+| `hector.magallanes@mmabogados.pe` | `Abogado2026!` | ABOGADO | Dashboard, consultas, propuestas, expediente nuevo, escritos y resoluciones |
+| `karen.paredes@mmabogados.pe` | `Secretaria2026!` | SECRETARIA | Consultas y citas, contratos y cuotas, cobranza, cierre y encuestas |
+| `miguel.rojas@mmabogados.pe` | `Practicante2026!` | PRACTICANTE | Consultas, escritos y resoluciones |
 
 Para detener la aplicación: **Ctrl+C** en la terminal. Si se cambia código Java, volver a ejecutar `mvn spring-boot:run`;
 si se cambia HTML/CSS/JS, recargar el navegador con **Ctrl+F5**.
@@ -123,17 +127,22 @@ integrante en **Settings → Collaborators → Add people**.
 
 ## Flujo que ya funciona en la web
 
-Landing (W01) → Bandeja y cita (W04 · W06) → Propuesta (W07) → Contrato y cuotas (W08) → Dashboard (W03).
-El estado de la consulta pasa por RECIBIDA → AGENDADA → PROPUESTA → CONTRATADA. Explicación y demostración:
-`8_Web_Landing_Panel/magallanes-web/docs/W08_CONTRATO_Y_CUOTAS.md` y `4_Informe/Informe_Relacion_Web_BD_Magallanes_Montero.docx`.
+Landing (W01) → Bandeja y cita (W04 · W06) → Propuesta (W07) → Contrato y cuotas (W08) → Expediente (W09) →
+Escrito, presentación y resolución (W11–W13) → Comprobante y pago (W18 · W19) → Cierre y encuesta (W21 · W22) → Dashboard (W03, con filtro
+Hoy / Semana / Mes / Trimestre / Año / 12 meses / Todo + calendario).
 
-## Equipo y reparto
+Informes en `4_Informe`:
+* `Informe_Tecnico_MongoDB_Conexiones_Estructura.docx`: por qué MongoDB, cómo se conecta la app, el archivo `.env` y la estructura del código.
+* `Informe_General_Proyecto_Magallanes_Montero.docx`: resumen de todo el proyecto.
+* `Informe_Relacion_Web_BD_Magallanes_Montero.docx`: pantallas ↔ tablas con capturas.
 
-Ver `8_Web_Landing_Panel/magallanes-web/docs/ORGANIZACION_EQUIPO.md`.
+## Equipo y reparto (sustentación)
+
+Todos los módulos están programados; cada integrante explica el suyo. Guías en `8_Web_Landing_Panel/magallanes-web/docs/`.
 
 | Integrante | Transacción | Pantallas | Estado |
 |---|---|---|---|
-| Alexandra | T1 + T2 (parte) + Dashboard | W01 Landing, W02 Login, W04 Bandeja, W06 Cita, W07 Propuesta, W08 Contrato y cuotas, W03 Dashboard | Funcionando |
-| Compañero 1 | T2 | W09 Nuevo expediente (CASO + CASO_PARTE + CASO_ETAPA + MongoDB `expedientes`) | Pendiente |
-| Compañero 2 | T3 | W11 Escrito, W12 Presentación, W13 Resolución y plazo | Pendiente |
-| Compañero 3 | T4 | W18 Comprobante, W19 Pago, W21 Cierre, W22 Encuesta | Pendiente |
+| Alexandra | T1 + T2 (parte) + Dashboard | W01, W02, W04, W06, W07, W08, W03 con filtro | Funcionando |
+| Compañero 1 | T2 | W09 Nuevo expediente (CASO + CASO_PARTE + CASO_ETAPA + MongoDB `expedientes`) | Funcionando · explicar |
+| Compañero 2 | T3 | W11 Escrito, W12 Presentación, W13 Resolución y plazo (+ MongoDB `archivos`) | Funcionando · explicar |
+| Compañero 3 | T4 | W18 Comprobante, W19 Pago, W21 Cierre, W22 Encuesta (+ MongoDB `encuestas`) | Funcionando · explicar |

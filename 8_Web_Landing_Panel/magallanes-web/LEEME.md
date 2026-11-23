@@ -16,6 +16,19 @@ En las páginas, debajo de cada campo aparece la etiqueta morada **`tabla.column
 el botón morado «Ocultar tablas de la BD» las esconde.
 
 
+## Novedades (23/11/2026)
+
+* **Todo el sistema funciona**: W09 expediente (T2), W11–W13 escritos/presentación/resolución (T3), W18–W22 comprobante, pago, cierre y encuesta (T4).
+* **Roles** por `empleado.cargo` (Gerencia, Abogado, Secretaría, Practicante): menú distinto y el servidor responde 403 a lo que no le toca
+  (`config/Roles.java`). Contraseñas de prueba: `sql/05_roles_contrasenas_de_prueba.sql`.
+* **Inicio por rol** (`panel/inicio.html`) con los pendientes del día; panel con barra superior, buscador e íconos.
+* **Encuestas**: permiso del cliente para publicar su comentario (solo en MongoDB `encuestas.publicacion`) y pestaña «Resultados de encuestas» (promedio, NPS, comentarios).
+* **Landing renovada**: cifras reales de SQL Server, equipo, testimonios autorizados (MongoDB), preguntas frecuentes.
+* **Plazos**: se cumplen al presentar el escrito (W12) o con «Marcar cumplido» en el cierre (W21).
+* **MongoDB**: la aplicación crea sola las 4 colecciones con su validador la primera vez (`mongo/MongoEsquema.java`).
+* **Archivo `.env`**: copie `.env.example` como `.env` y ponga su puerto de SQL Server. Ya no se edita `application.properties`.
+* **Dashboard con filtro** Hoy / Semana / Mes / Trimestre / Año / 12 meses / Todo + calendario (`1_SQL_Server/magallanes_montero_dashboard_filtros.sql`).
+
 ## Novedades (15/11/2026)
 
 * **W03 · Dashboard gerencial** (`/panel/dashboard.html`): ganancias, cobranza mensual, ganancia por materia y por abogado,

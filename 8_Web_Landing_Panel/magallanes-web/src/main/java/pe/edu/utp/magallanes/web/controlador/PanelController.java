@@ -21,6 +21,9 @@ import pe.edu.utp.magallanes.web.dto.SolicitudCita;
 import pe.edu.utp.magallanes.web.repositorio.CitaRepositorio;
 import pe.edu.utp.magallanes.web.repositorio.ConsultaRepositorio;
 import pe.edu.utp.magallanes.web.repositorio.DashboardRepositorio;
+import pe.edu.utp.magallanes.web.repositorio.InicioRepositorio;
+import pe.edu.utp.magallanes.web.config.Sesion;
+import jakarta.servlet.http.HttpSession;
 
 /** Servicios del panel (protegidos por SesionInterceptor): bandeja W04 y agendar cita W06. */
 @RestController
@@ -29,17 +32,29 @@ public class PanelController {
     private final ConsultaRepositorio consultas;
     private final CitaRepositorio citas;
     private final DashboardRepositorio dashboard;
+    private final InicioRepositorio inicio;
 
-    public PanelController(ConsultaRepositorio consultas, CitaRepositorio citas, DashboardRepositorio dashboard) {
+    public PanelController(ConsultaRepositorio consultas, CitaRepositorio citas, DashboardRepositorio dashboard, InicioRepositorio inicio) {
         this.consultas = consultas;
         this.citas = citas;
         this.dashboard = dashboard;
+        this.inicio = inicio;
+    }
+
+    /** Inicio del panel: pendientes del día según el rol (empleado.cargo) del usuario que inició sesión. */
+    @GetMapping("/inicio")
+    public java.util.Map<String, Object> inicio(HttpSession s) throws SQLException {
+        return inicio.inicio(Sesion.usuario(s));
     }
 
     /** W03 · Dashboard gerencial: indicadores calculados por las vistas vw_dash_* de SQL Server. */
     @GetMapping("/dashboard")
-    public java.util.Map<String, Object> dashboard() throws SQLException {
-        return dashboard.todo();
+    public java.util.Map<String, Object> dashboard(@RequestParam(required = false) String desde,
+                                                   @RequestParam(required = false) String hasta) throws SQLException {
+        LocalDate h = (hasta == null || hasta.isBlank()) ? LocalDate.now() : LocalDate.parse(hasta);
+        LocalDate d = (desde == null || desde.isBlank()) ? h.withDayOfYear(1) : LocalDate.parse(desde);   // por defecto: este año
+        if (d.isAfter(h)) throw new ReglaNegocioException("La fecha «desde» no puede ser posterior a «hasta».");
+        return dashboard.todo(d, h);
     }
 
     @GetMapping("/consultas")

@@ -1,5 +1,5 @@
 // =====================================================================
-// W03 · Dashboard gerencial: GET /api/panel/dashboard (vistas vw_dash_* de SQL Server)
+// W03 · Dashboard gerencial: GET /api/panel/dashboard?desde=&hasta= (funciones fn_dash_* de SQL Server)
 // =====================================================================
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -16,19 +16,52 @@ function grafico(id, config) {
   graficos[id] = new Chart($(id), config);
 }
 
+// ---------------- Filtro por periodo
+const iso = (f) => `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}-${String(f.getDate()).padStart(2, "0")}`;
+const dmy = (s) => s.split("-").reverse().join("/");
+function rango(clave) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  let d = new Date(hoy);
+  switch (clave) {
+    case "hoy": break;
+    case "semana": d.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7)); break;          // lunes de esta semana
+    case "mes": d = new Date(hoy.getFullYear(), hoy.getMonth(), 1); break;
+    case "trimestre": d = new Date(hoy.getFullYear(), Math.floor(hoy.getMonth() / 3) * 3, 1); break;
+    case "anio": d = new Date(hoy.getFullYear(), 0, 1); break;
+    case "12m": d = new Date(hoy.getFullYear(), hoy.getMonth() - 11, 1); break;
+    case "todo": d = new Date(2000, 0, 1); break;
+  }
+  return { desde: iso(d), hasta: iso(hoy) };
+}
+function elegirRapido(clave) {
+  const r = rango(clave);
+  $("f-desde").value = r.desde; $("f-hasta").value = r.hasta;
+  document.querySelectorAll("#rapidos button").forEach((b) => b.classList.toggle("activo", b.dataset.rango === clave));
+  try { localStorage.setItem("mm-dash-rango", clave); } catch (e) { /* sin almacenamiento */ }
+  cargar();
+}
+document.querySelectorAll("#rapidos button").forEach((b) => b.addEventListener("click", () => elegirRapido(b.dataset.rango)));
+$("aplicar").addEventListener("click", () => {
+  document.querySelectorAll("#rapidos button").forEach((b) => b.classList.remove("activo"));
+  cargar();
+});
+
 async function cargar() {
+  const desde = $("f-desde").value, hasta = $("f-hasta").value;
+  if (desde && hasta && desde > hasta) { $("error").className = "alerta mal"; $("error").textContent = "«Desde» no puede ser posterior a «Hasta»."; return; }
   try {
-    const r = await fetch("../api/panel/dashboard");
+    const r = await fetch(`../api/panel/dashboard?desde=${desde}&hasta=${hasta}`);
     if (r.status === 401) { location.href = "login.html"; return; }
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || "Error " + r.status);
     $("error").className = "alerta";
+    $("periodo-txt").textContent = `Periodo: ${dmy(d.desde)} – ${dmy(d.hasta)}`;
     pintar(d);
     $("actualizado").textContent = "· Actualizado " + new Date().toLocaleTimeString("es-PE");
   } catch (e) {
     $("error").className = "alerta mal";
     $("error").textContent = "No se pudo cargar el dashboard: " + e.message
-      + " (¿ejecutó 1_SQL_Server/magallanes_montero_vistas_dashboard.sql?)";
+      + " (¿ejecutó 1_SQL_Server/magallanes_montero_dashboard_filtros.sql?)";
   }
 }
 
@@ -49,11 +82,17 @@ function pintar(d) {
   $("a-aud").textContent = k.audiencias_7_dias;
 
   const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic"];
+  const gran = d.cobranza.length ? d.cobranza[0].granularidad : "MES";
+  $("t-gran").textContent = { DIA: "por día", SEMANA: "por semana", MES: "por mes" }[gran];
+  const etiqueta = (c) => gran === "MES" ? meses[Number(c.periodo.slice(5, 7)) - 1] + " " + c.periodo.slice(2, 4)
+    : gran === "SEMANA" ? "sem. " + c.periodo.slice(8, 10) + "/" + c.periodo.slice(5, 7)
+    : c.periodo.slice(8, 10) + "/" + c.periodo.slice(5, 7);
   grafico("g-mensual", { type: "bar",
-    data: { labels: d.cobranzaMensual.map((m) => meses[Number(m.mes.slice(5)) - 1] + " " + m.mes.slice(2, 4)),
-      datasets: [{ label: "Cobrado sin IGV", data: d.cobranzaMensual.map((m) => m.cobrado_sin_igv), backgroundColor: NAVY, borderRadius: 6 }] },
+    data: { labels: d.cobranza.map(etiqueta),
+      datasets: [{ label: "Cobrado sin IGV", data: d.cobranza.map((m) => m.cobrado_sin_igv), backgroundColor: NAVY, borderRadius: 6 }] },
     options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => soles(c.raw) } } },
-      scales: { y: { ticks: { callback: (v) => solesCorto(v) } } } } });
+      scales: { y: { beginAtZero: true, ticks: { callback: (v) => solesCorto(v) } } } } });
+  if (!d.cobranza.length) $("t-gran").textContent += " · sin pagos en el periodo";
 
   grafico("g-materia", { type: "bar",
     data: { labels: d.materias.map((m) => m.materia),
@@ -96,4 +135,6 @@ function pintar(d) {
 }
 
 $("refrescar").addEventListener("click", cargar);
-cargar();
+let inicial = "anio";
+try { inicial = localStorage.getItem("mm-dash-rango") || "anio"; } catch (e) { /* sin almacenamiento */ }
+elegirRapido(inicial);

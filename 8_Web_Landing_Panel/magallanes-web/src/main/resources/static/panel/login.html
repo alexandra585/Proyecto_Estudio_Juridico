@@ -23,11 +23,20 @@
       <button class="btn btn-oro" type="submit" id="btn">Ingresar</button>
       <p style="font-size:12px;color:var(--muted);margin-top:16px">Al ingresar se actualiza <span class="bd">usuario.ultimo_acceso</span>. Las cuentas inactivas (<span class="bd">usuario.activo = 0</span>) no pueden entrar.</p>
       <a href="../index.html" style="font-size:13px;color:var(--gold);font-weight:700">← Volver a la página web</a>
+      <div class="cuentas-prueba bd-bloque">
+        <b>Cuentas de prueba por rol</b> <small>(clic para llenar)</small>
+        <button type="button" data-u="gabriela.montero@mmabogados.pe" data-c="Gerencia2026!">Gerencia · Gabriela Montero</button>
+        <button type="button" data-u="hector.magallanes@mmabogados.pe" data-c="Abogado2026!">Abogado · Héctor Magallanes</button>
+        <button type="button" data-u="karen.paredes@mmabogados.pe" data-c="Secretaria2026!">Secretaría · Karen Paredes</button>
+        <button type="button" data-u="miguel.rojas@mmabogados.pe" data-c="Practicante2026!">Practicante · Miguel Rojas</button>
+        <span class="bd">el rol sale de empleado.cargo · sql/05_roles_contrasenas_de_prueba.sql</span>
+      </div>
     </form>
   </section>
 </div>
 <script>
 const $ = (id) => document.getElementById(id);
+document.querySelectorAll(".cuentas-prueba button").forEach((b) => b.addEventListener("click", () => { $("email").value = b.dataset.u; $("contrasena").value = b.dataset.c; }));
 $("form-login").addEventListener("submit", async (e) => {
   e.preventDefault();
   const a = $("alerta"); a.className = "alerta";
@@ -37,7 +46,7 @@ $("form-login").addEventListener("submit", async (e) => {
       body: JSON.stringify({ email: $("email").value.trim(), contrasena: $("contrasena").value }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || "No se pudo iniciar sesión");
-    location.href = "index.html";
+    location.href = "inicio.html";
   } catch (err) {
     a.className = "alerta mal"; a.textContent = err.message;
     b.disabled = false; b.textContent = "Ingresar";
