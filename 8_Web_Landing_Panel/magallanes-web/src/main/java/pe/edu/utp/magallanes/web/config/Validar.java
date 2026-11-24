@@ -11,17 +11,17 @@ public final class Validar {
     private Validar() { }
 
     private static final Pattern SOLO_LETRAS = Pattern.compile("[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ' -]{2,80}");
-    private static final Pattern CELULAR = Pattern.compile("(\\+51)?9\\d{8}");
+    private static final Pattern CELULAR = Pattern.compile("9\\d{8}");
     private static final Pattern EMAIL = Pattern.compile("[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}");
 
     /** Quita espacios de más: "  maría   josé " → "maría josé". */
     public static String limpiar(String t) { return t == null ? null : t.trim().replaceAll("\\s+", " "); }
 
-    /** Celular sin espacios ni guiones: "987 654-321" → "987654321". */
+    /** Celular de 9 dígitos (sin espacios ni guiones): "987 654-321" → "987654321". */
     public static String telefono(String t) {
         if (t == null || t.isBlank()) return null;
         String x = t.replaceAll("[\\s-]", "");
-        if (!CELULAR.matcher(x).matches()) throw new ReglaNegocioException("El celular debe tener 9 dígitos y empezar con 9 (ej.: 987654321).");
+        if (!CELULAR.matcher(x).matches()) throw new ReglaNegocioException("El celular debe tener exactamente 9 dígitos y empezar con 9 (ej.: 987654321).");
         return x;
     }
 

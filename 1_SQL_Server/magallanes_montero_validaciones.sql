@@ -4,7 +4,7 @@
 --
 -- Reglas (Perú):
 --   DNI 8 dígitos · RUC 11 dígitos que empiezan con 10 o 20 · CE 9 a 12 dígitos · Pasaporte 6 a 12 letras/números
---   Celular 9 dígitos que empiezan con 9 (o +51 y 9 dígitos)
+--   Celular: exactamente 9 dígitos que empiezan con 9
 --   Nombres y apellidos: solo letras (con tildes y ñ), espacios, apóstrofo y guion; mínimo 2 caracteres
 --   Correo: nombre@dominio.ext sin espacios · Razón social: mínimo 3 caracteres
 --   Relato de la consulta: mínimo 15 caracteres · Código interno del caso: EXP-AAAA-NNNN
@@ -30,9 +30,8 @@ INSERT INTO @reglas (tabla, nombre, expresion, descripcion) VALUES
    OR (tipo_documento = ''PASAPORTE'' AND LEN(nro_documento) BETWEEN 6 AND 12 AND nro_documento NOT LIKE ''%[^A-Za-z0-9]%'')',
    N'DNI 8 dígitos · RUC 11 (10/20) · CE 9-12 dígitos · Pasaporte 6-12 letras/números'),
 (N'persona', N'ck_persona_telefono_formato', N'telefono IS NULL
-   OR (LEN(telefono) = 9  AND telefono LIKE ''9%''    AND telefono NOT LIKE ''%[^0-9]%'')
-   OR (LEN(telefono) = 12 AND telefono LIKE ''+519%'' AND SUBSTRING(telefono, 2, 11) NOT LIKE ''%[^0-9]%'')',
-   N'Celular: 9 dígitos empezando en 9, o +51 y 9 dígitos'),
+   OR (LEN(telefono) = 9 AND telefono LIKE ''9%'' AND telefono NOT LIKE ''%[^0-9]%'')',
+   N'Celular: exactamente 9 dígitos empezando en 9'),
 (N'persona', N'ck_persona_email_formato', N'email IS NULL
    OR (email LIKE ''%_@_%._%'' AND email NOT LIKE ''% %'' AND email NOT LIKE ''%@%@%'' AND email NOT LIKE ''%..%'')',
    N'Correo con formato nombre@dominio.ext'),
@@ -46,8 +45,7 @@ INSERT INTO @reglas (tabla, nombre, expresion, descripcion) VALUES
    N'Razón social: mínimo 3 caracteres'),
 (N'empleado', N'ck_empleado_dni_formato', N'dni NOT LIKE ''%[^0-9]%''', N'DNI del empleado: 8 dígitos'),
 (N'empleado', N'ck_empleado_telefono_formato', N'telefono IS NULL
-   OR (LEN(telefono) = 9  AND telefono LIKE ''9%''    AND telefono NOT LIKE ''%[^0-9]%'')
-   OR (LEN(telefono) = 12 AND telefono LIKE ''+519%'' AND SUBSTRING(telefono, 2, 11) NOT LIKE ''%[^0-9]%'')',
+   OR (LEN(telefono) = 9 AND telefono LIKE ''9%'' AND telefono NOT LIKE ''%[^0-9]%'')',
    N'Celular del empleado: 9 dígitos empezando en 9'),
 (N'empleado', N'ck_empleado_email_formato', N'email LIKE ''%_@_%._%'' AND email NOT LIKE ''% %'' AND email NOT LIKE ''%@%@%''',
    N'Correo del empleado con formato válido'),
@@ -93,8 +91,7 @@ WHERE NOT (nro_documento IS NULL
    OR (tipo_documento = 'CE'        AND LEN(nro_documento) BETWEEN 9 AND 12 AND nro_documento NOT LIKE '%[^0-9]%')
    OR (tipo_documento = 'PASAPORTE' AND LEN(nro_documento) BETWEEN 6 AND 12 AND nro_documento NOT LIKE '%[^A-Za-z0-9]%'))
    OR NOT (telefono IS NULL
-   OR (LEN(telefono) = 9  AND telefono LIKE '9%'    AND telefono NOT LIKE '%[^0-9]%')
-   OR (LEN(telefono) = 12 AND telefono LIKE '+519%' AND SUBSTRING(telefono, 2, 11) NOT LIKE '%[^0-9]%'))
+   OR (LEN(telefono) = 9 AND telefono LIKE '9%' AND telefono NOT LIKE '%[^0-9]%'))
    OR NOT (nombres IS NULL OR (LEN(LTRIM(RTRIM(nombres))) >= 2 AND nombres NOT LIKE N'%[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ'' -]%'))
    OR NOT (apellidos IS NULL OR (LEN(LTRIM(RTRIM(apellidos))) >= 2 AND apellidos NOT LIKE N'%[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ'' -]%'))
    OR NOT (email IS NULL OR (email LIKE '%_@_%._%' AND email NOT LIKE '% %' AND email NOT LIKE '%@%@%' AND email NOT LIKE '%..%'));

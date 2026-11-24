@@ -3,7 +3,7 @@
 ## 23/11/2026 (noche) · Validación de datos en 3 niveles y ayudas al escribir
 - **Base de datos** (`1_SQL_Server/magallanes_montero_validaciones.sql`): CHECK nuevos en PERSONA, EMPLEADO, CONSULTA y CASO
   - DNI 8 dígitos · RUC 11 (10/20) · CE 9-12 dígitos · Pasaporte 6-12 letras/números
-  - Celular 9 dígitos que empieza en 9 (o +51) · correo nombre@dominio.ext · nombres y apellidos solo letras (mín. 2)
+  - Celular: exactamente 9 dígitos que empieza en 9 · correo nombre@dominio.ext · nombres y apellidos solo letras (mín. 2)
   - Razón social mín. 3 · relato de la consulta mín. 15 · código del caso EXP-AAAA-NNNN
   - El script revisa primero los datos existentes: WITH CHECK si todos cumplen, WITH NOCHECK (solo datos nuevos) si no, y lista las filas a corregir.
 - **Servidor Java** (`config/Validar.java`): las mismas reglas con mensajes claros; limpia espacios y deja el celular sin espacios.

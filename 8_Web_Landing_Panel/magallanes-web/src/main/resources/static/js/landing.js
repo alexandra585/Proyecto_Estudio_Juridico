@@ -153,7 +153,7 @@ const DOC = {
 };
 const LETRAS = /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ' -]/g;
 const RE_NOMBRE = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ' -]{2,80}$/;
-const RE_CEL = /^(\+51)?9\d{8}$/;
+const RE_CEL = /^9\d{8}$/;
 const RE_MAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 const limpiarTel = (t) => t.replace(/[\s-]/g, "");
 
@@ -183,10 +183,10 @@ function actualizarPistas() {
   const d = DOC[$("tipoDocumento").value], v = $("nroDocumento").value;
   $("pista-doc").textContent = `${d.txt} · ${v.length} / ${d.max}${d.re.test(v) ? " ✓" : ""}`;
   const t = limpiarTel($("telefono").value);
-  $("pista-tel").textContent = t ? (RE_CEL.test(t) ? "Celular válido ✓" : `9 dígitos, empieza con 9 · ${t.replace("+51", "").length} / 9`) : "9 dígitos, empieza con 9";
+  $("pista-tel").textContent = t ? (RE_CEL.test(t) ? "Celular válido ✓" : `9 dígitos, empieza con 9 · ${t.length} / 9`) : "9 dígitos, empieza con 9";
 }
 filtrar("nroDocumento", /[^A-Za-z0-9]/g, (v) => v.replace(DOC[$("tipoDocumento").value].filtro, "").toUpperCase());
-filtrar("telefono", /[^0-9+ ]/g, (v) => v.replace(/(?!^)\+/g, ""));
+filtrar("telefono", /[^0-9]/g, (v) => v.slice(0, 9));
 ["nombres", "apellidos", "cpNombres", "cpApellidos"].forEach((id) => filtrar(id, LETRAS, (v) => v.replace(/\s{2,}/g, " ")));
 $("tipoDocumento").addEventListener("change", configurarDocumento);
 $("email").addEventListener("blur", () => { $("email").value = $("email").value.trim().toLowerCase(); });
