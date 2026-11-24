@@ -1,5 +1,10 @@
 # Registro de cambios
 
+## 24/11/2026 · Informes actualizados
+- Informe técnico: nueva lectura del `.env` (MagallanesWebApplication), login bloqueado, creación automática de colecciones MongoDB,
+  validación de datos en 3 niveles (sección 12), diagramas y compatibilidad SSMS 20 / SQL Server 2025 (sección 13), estructura con archivos nuevos.
+- Informe general: validaciones, ayudas al escribir y orden de scripts de instalación (incluye validaciones y roles).
+
 ## 23/11/2026 (noche) · Validación de datos en 3 niveles y ayudas al escribir
 - **Base de datos** (`1_SQL_Server/magallanes_montero_validaciones.sql`): CHECK nuevos en PERSONA, EMPLEADO, CONSULTA y CASO
   - DNI 8 dígitos · RUC 11 (10/20) · CE 9-12 dígitos · Pasaporte 6-12 letras/números
