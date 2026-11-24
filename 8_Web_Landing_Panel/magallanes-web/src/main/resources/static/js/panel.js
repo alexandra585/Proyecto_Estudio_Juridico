@@ -18,10 +18,7 @@ const estado = (e) => `<span class="estado e-${esc(e)}">${esc(e)}</span>`;
 
 // ---------- Sesión (W02)
 async function iniciar() {
-  const u = await api("../api/auth/yo");
-  $("u-nombre").textContent = u.nombre;
-  $("u-cargo").textContent = u.cargo;
-  $("u-email").textContent = u.email;
+  await api("../api/auth/yo");   // el nombre y el rol los muestra js/menu.js
   const manana = new Date(); manana.setDate(manana.getDate() + 1);
   $("fecha").value = fechaLocal(manana);
   $("fecha").min = fechaLocal(new Date());

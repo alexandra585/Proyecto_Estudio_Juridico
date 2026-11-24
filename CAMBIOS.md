@@ -1,8 +1,9 @@
 # Registro de cambios
 
-## 23/11/2026 (tarde) · Conexión más robusta
+## 23/11/2026 (tarde) · Conexión más robusta y bandeja
 - `MagallanesWebApplication` lee `.env.example` y `.env` desde la carpeta `magallanes-web` aunque VS Code ejecute desde otra carpeta
   (antes, al abrir el proyecto desde la carpeta de arriba, no encontraba la contraseña y SQL Server respondía «Login failed»).
+- Bandeja de consultas (W04): se quedaba en «Cargando…» con el menú nuevo; corregido (`js/panel.js`).
 - Si el login `app_magallanes` quedó **bloqueado** por muchos intentos fallidos (política de contraseñas de Windows), en SSMS:
   `ALTER LOGIN app_magallanes WITH PASSWORD = N'Magallanes2026!' UNLOCK;`
 
