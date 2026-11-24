@@ -145,7 +145,66 @@ document.querySelectorAll('input[name="cpTipo"]').forEach((r) => r.addEventListe
 
 $("resumen").addEventListener("input", () => { $("contador").textContent = $("resumen").value.length + " / 500"; });
 
-// ---------- Validación en el navegador (las mismas reglas valida el servidor y SQL Server)
+// ---------- Reglas de formato (las mismas de Validar.java y de los CHECK de SQL Server)
+const DOC = {
+  DNI: { re: /^\d{8}$/, max: 8, modo: "numeric", filtro: /[^0-9]/g, ph: "8 dígitos", txt: "DNI: 8 dígitos" },
+  CE: { re: /^\d{9,12}$/, max: 12, modo: "numeric", filtro: /[^0-9]/g, ph: "9 a 12 dígitos", txt: "Carné de extranjería: 9 a 12 dígitos" },
+  PASAPORTE: { re: /^[A-Z0-9]{6,12}$/, max: 12, modo: "text", filtro: /[^A-Za-z0-9]/g, ph: "6 a 12 letras o números", txt: "Pasaporte: 6 a 12 letras o números" },
+};
+const LETRAS = /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ' -]/g;
+const RE_NOMBRE = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ' -]{2,80}$/;
+const RE_CEL = /^(\+51)?9\d{8}$/;
+const RE_MAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+const limpiarTel = (t) => t.replace(/[\s-]/g, "");
+
+// Mientras escribe: no deja poner letras en el DNI/celular ni números en los nombres, y respeta el máximo de caracteres
+function filtrar(id, re, transformar) {
+  $(id).addEventListener("input", (e) => {
+    const el = e.target, antes = el.value;
+    let v = antes.replace(re, "");
+    if (transformar) v = transformar(v);
+    if (v !== antes) { el.value = v; avisoBreve(id); }
+    actualizarPistas();
+  });
+}
+function avisoBreve(id) {
+  const c = $(id).closest(".campo"); c.classList.add("error");
+  c.querySelector(".msg").textContent = id === "nroDocumento" || id === "telefono" ? "Solo se permiten números." : "Solo se permiten letras.";
+  clearTimeout(c._t); c._t = setTimeout(() => c.classList.remove("error"), 1600);
+}
+function configurarDocumento() {
+  const d = DOC[$("tipoDocumento").value];
+  const el = $("nroDocumento");
+  el.maxLength = d.max; el.inputMode = d.modo; el.placeholder = d.ph;
+  el.value = el.value.replace(d.filtro, "").toUpperCase().slice(0, d.max);
+  actualizarPistas();
+}
+function actualizarPistas() {
+  const d = DOC[$("tipoDocumento").value], v = $("nroDocumento").value;
+  $("pista-doc").textContent = `${d.txt} · ${v.length} / ${d.max}${d.re.test(v) ? " ✓" : ""}`;
+  const t = limpiarTel($("telefono").value);
+  $("pista-tel").textContent = t ? (RE_CEL.test(t) ? "Celular válido ✓" : `9 dígitos, empieza con 9 · ${t.replace("+51", "").length} / 9`) : "9 dígitos, empieza con 9";
+}
+filtrar("nroDocumento", /[^A-Za-z0-9]/g, (v) => v.replace(DOC[$("tipoDocumento").value].filtro, "").toUpperCase());
+filtrar("telefono", /[^0-9+ ]/g, (v) => v.replace(/(?!^)\+/g, ""));
+["nombres", "apellidos", "cpNombres", "cpApellidos"].forEach((id) => filtrar(id, LETRAS, (v) => v.replace(/\s{2,}/g, " ")));
+$("tipoDocumento").addEventListener("change", configurarDocumento);
+$("email").addEventListener("blur", () => { $("email").value = $("email").value.trim().toLowerCase(); });
+// Al salir de cada campo se revisa y se marca en verde o rojo
+["nombres", "apellidos", "nroDocumento", "telefono", "email"].forEach((id) => $(id).addEventListener("blur", () => revisarCampo(id)));
+function revisarCampo(id) {
+  const v = $(id).value.trim(), c = $(id).closest(".campo");
+  let m = "";
+  if (id === "nombres" || id === "apellidos") m = !v ? "" : RE_NOMBRE.test(v) ? "" : "Mínimo 2 letras.";
+  if (id === "nroDocumento") m = !v ? "" : DOC[$("tipoDocumento").value].re.test(v) ? "" : DOC[$("tipoDocumento").value].txt + ".";
+  if (id === "telefono") m = !v ? "" : RE_CEL.test(limpiarTel(v)) ? "" : "Debe tener 9 dígitos y empezar con 9.";
+  if (id === "email") m = !v ? "" : RE_MAIL.test(v) ? "" : "Correo no válido (ej.: nombre@gmail.com).";
+  c.classList.toggle("error", !!m); c.classList.toggle("ok", !!v && !m);
+  c.querySelector(".msg").textContent = m;
+}
+configurarDocumento();
+
+// ---------- Validación al enviar (las mismas reglas valida el servidor y SQL Server)
 function marcar(id, mensaje) {
   const campo = $(id).closest(".campo");
   campo.classList.add("error");
@@ -156,19 +215,18 @@ function validar(d) {
   document.querySelectorAll(".campo.error").forEach((c) => c.classList.remove("error"));
   let ok = true;
   const mal = (id, m) => { marcar(id, m); ok = false; };
-  if (!d.nombres) mal("nombres", "Ingrese sus nombres.");
-  if (!d.apellidos) mal("apellidos", "Ingrese sus apellidos.");
-  if (d.tipoDocumento === "DNI" && !/^\d{8}$/.test(d.nroDocumento)) mal("nroDocumento", "El DNI tiene 8 dígitos.");
-  else if (!/^[A-Za-z0-9]{6,15}$/.test(d.nroDocumento)) mal("nroDocumento", "Número no válido.");
-  if (!/^\+?\d{7,15}$/.test(d.telefono.replace(/\s/g, ""))) mal("telefono", "Ingrese un celular válido.");
-  if (d.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) mal("email", "Correo no válido.");
+  if (!RE_NOMBRE.test(d.nombres)) mal("nombres", "Ingrese sus nombres (solo letras, mínimo 2).");
+  if (!RE_NOMBRE.test(d.apellidos)) mal("apellidos", "Ingrese sus apellidos (solo letras, mínimo 2).");
+  if (!DOC[d.tipoDocumento].re.test(d.nroDocumento)) mal("nroDocumento", DOC[d.tipoDocumento].txt + ".");
+  if (!RE_CEL.test(d.telefono)) mal("telefono", "Celular de 9 dígitos que empiece con 9 (ej.: 987654321).");
+  if (d.email && !RE_MAIL.test(d.email)) mal("email", "Correo no válido (ej.: nombre@gmail.com).");
   if (!d.idMateria) mal("idMateria", "Seleccione la materia.");
   if (d.resumen.length < 15) mal("resumen", "Cuéntenos un poco más (mínimo 15 caracteres).");
-  if (d.contraparteTipo === "NATURAL" && (!d.contraparteNombres || !d.contraparteApellidos)) {
-    if (!d.contraparteNombres) mal("cpNombres", "Ingrese los nombres.");
-    if (!d.contraparteApellidos) mal("cpApellidos", "Ingrese los apellidos.");
+  if (d.contraparteTipo === "NATURAL") {
+    if (!RE_NOMBRE.test(d.contraparteNombres)) mal("cpNombres", "Solo letras, mínimo 2.");
+    if (!RE_NOMBRE.test(d.contraparteApellidos)) mal("cpApellidos", "Solo letras, mínimo 2.");
   }
-  if (d.contraparteTipo === "JURIDICA" && !d.contraparteRazonSocial) mal("cpRazon", "Ingrese la razón social.");
+  if (d.contraparteTipo === "JURIDICA" && d.contraparteRazonSocial.length < 3) mal("cpRazon", "Ingrese la razón social (mínimo 3 caracteres).");
   if (!d.aceptaDatos) { mostrarAlerta("mal", "Debe aceptar el tratamiento de sus datos personales (Ley 29733)."); ok = false; }
   return ok;
 }
@@ -186,8 +244,8 @@ $("form-consulta").addEventListener("submit", async (ev) => {
   const v = (id) => $(id).value.trim();
   const tipo = document.querySelector('input[name="cpTipo"]:checked').value;
   const datos = {
-    nombres: v("nombres"), apellidos: v("apellidos"), tipoDocumento: v("tipoDocumento"), nroDocumento: v("nroDocumento"),
-    telefono: v("telefono"), email: v("email"), idMateria: v("idMateria") ? Number(v("idMateria")) : null, resumen: v("resumen"),
+    nombres: v("nombres").replace(/\s+/g, " "), apellidos: v("apellidos").replace(/\s+/g, " "), tipoDocumento: v("tipoDocumento"), nroDocumento: v("nroDocumento"),
+    telefono: limpiarTel(v("telefono")), email: v("email").toLowerCase(), idMateria: v("idMateria") ? Number(v("idMateria")) : null, resumen: v("resumen"),
     esUrgente: $("esUrgente").checked, aceptaDatos: $("aceptaDatos").checked,
     contraparteTipo: tipo || null, contraparteNombres: v("cpNombres"), contraparteApellidos: v("cpApellidos"), contraparteRazonSocial: v("cpRazon"),
   };

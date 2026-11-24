@@ -1,5 +1,15 @@
 # Registro de cambios
 
+## 23/11/2026 (noche) · Validación de datos en 3 niveles y ayudas al escribir
+- **Base de datos** (`1_SQL_Server/magallanes_montero_validaciones.sql`): CHECK nuevos en PERSONA, EMPLEADO, CONSULTA y CASO
+  - DNI 8 dígitos · RUC 11 (10/20) · CE 9-12 dígitos · Pasaporte 6-12 letras/números
+  - Celular 9 dígitos que empieza en 9 (o +51) · correo nombre@dominio.ext · nombres y apellidos solo letras (mín. 2)
+  - Razón social mín. 3 · relato de la consulta mín. 15 · código del caso EXP-AAAA-NNNN
+  - El script revisa primero los datos existentes: WITH CHECK si todos cumplen, WITH NOCHECK (solo datos nuevos) si no, y lista las filas a corregir.
+- **Servidor Java** (`config/Validar.java`): las mismas reglas con mensajes claros; limpia espacios y deja el celular sin espacios.
+- **Landing**: el DNI y el celular no aceptan letras, los nombres no aceptan números, límite de dígitos según el tipo de documento, contador «5 / 8» y marca verde/roja al salir del campo.
+- **Panel** (`js/ayudas.js`): ejemplos dentro de los campos, texto de ayuda debajo, sugerencias frecuentes (sumillas, plazos, resoluciones, etiquetas) y contador con el máximo de la columna.
+
 ## 23/11/2026 (tarde) · Conexión más robusta y bandeja
 - `MagallanesWebApplication` lee `.env.example` y `.env` desde la carpeta `magallanes-web` aunque VS Code ejecute desde otra carpeta
   (antes, al abrir el proyecto desde la carpeta de arriba, no encontraba la contraseña y SQL Server respondía «Login failed»).

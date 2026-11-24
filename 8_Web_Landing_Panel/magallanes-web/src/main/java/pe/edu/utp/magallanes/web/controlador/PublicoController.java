@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pe.edu.utp.magallanes.web.config.ReglaNegocioException;
+import pe.edu.utp.magallanes.web.config.Validar;
 import pe.edu.utp.magallanes.web.dto.Calificacion;
 import pe.edu.utp.magallanes.web.dto.Materia;
 import pe.edu.utp.magallanes.web.dto.RespuestaConsulta;
@@ -75,29 +76,36 @@ public class PublicoController {
     /** Formulario «Cuéntenos su caso» → transacción T1. */
     @PostMapping("/consultas")
     public RespuestaConsulta registrar(@RequestBody SolicitudConsulta s) throws SQLException {
-        validar(s);
-        return consultas.registrarDesdeLanding(s);
+        return consultas.registrarDesdeLanding(validar(s));
     }
 
-    /** Mismas reglas que exigen los CHECK de SQL Server, para dar un mensaje claro antes de grabar. */
-    private static void validar(SolicitudConsulta s) {
-        if (vacio(s.nombres()) || vacio(s.apellidos())) throw new ReglaNegocioException("Ingrese sus nombres y apellidos.");
+    /**
+     * Mismas reglas que los CHECK de SQL Server (magallanes_montero_validaciones.sql), para dar un mensaje claro antes de grabar.
+     * Devuelve los datos ya LIMPIOS (sin espacios de más, celular sin espacios, correo en minúsculas).
+     */
+    private static SolicitudConsulta validar(SolicitudConsulta s) {
+        String nombres = Validar.nombre(s.nombres(), "sus nombres");
+        String apellidos = Validar.nombre(s.apellidos(), "sus apellidos");
         if (vacio(s.tipoDocumento()) || !List.of("DNI", "CE", "PASAPORTE").contains(s.tipoDocumento()))
             throw new ReglaNegocioException("Seleccione el tipo de documento.");
-        String nro = s.nroDocumento() == null ? "" : s.nroDocumento().trim();
-        if ("DNI".equals(s.tipoDocumento()) && !nro.matches("\\d{8}")) throw new ReglaNegocioException("El DNI debe tener 8 dígitos.");
-        if (!nro.matches("[A-Za-z0-9]{6,15}")) throw new ReglaNegocioException("Número de documento no válido.");
+        String nro = Validar.documento(s.tipoDocumento(), s.nroDocumento());
         if (vacio(s.telefono()) && vacio(s.email())) throw new ReglaNegocioException("Ingrese su celular o su correo para responderle.");
-        if (!vacio(s.telefono()) && !s.telefono().replace(" ", "").matches("\\+?\\d{7,15}")) throw new ReglaNegocioException("Celular no válido.");
-        if (!vacio(s.email()) && !s.email().trim().matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) throw new ReglaNegocioException("Correo no válido.");
+        String tel = Validar.telefono(s.telefono());
+        String email = Validar.email(s.email());
         if (s.idMateria() == null) throw new ReglaNegocioException("Seleccione la materia de su caso.");
-        if (vacio(s.resumen()) || s.resumen().trim().length() < 15) throw new ReglaNegocioException("Cuéntenos un poco más de su caso (mínimo 15 caracteres).");
-        if (s.resumen().length() > 500) throw new ReglaNegocioException("El relato no puede pasar de 500 caracteres.");
+        String resumen = Validar.limpiar(s.resumen());
+        if (resumen == null || resumen.length() < 15) throw new ReglaNegocioException("Cuéntenos un poco más de su caso (mínimo 15 caracteres).");
+        if (resumen.length() > 500) throw new ReglaNegocioException("El relato no puede pasar de 500 caracteres.");
         if (!s.aceptaDatos()) throw new ReglaNegocioException("Debe aceptar el tratamiento de sus datos personales (Ley 29733).");
-        if ("NATURAL".equals(s.contraparteTipo()) && (vacio(s.contraparteNombres()) || vacio(s.contraparteApellidos())))
-            throw new ReglaNegocioException("Ingrese nombres y apellidos de la contraparte, o deje la contraparte en blanco.");
-        if ("JURIDICA".equals(s.contraparteTipo()) && vacio(s.contraparteRazonSocial()))
-            throw new ReglaNegocioException("Ingrese la razón social de la contraparte, o deje la contraparte en blanco.");
+        String cpN = null, cpA = null, cpR = null;
+        if ("NATURAL".equals(s.contraparteTipo())) {
+            cpN = Validar.nombre(s.contraparteNombres(), "los nombres de la contraparte");
+            cpA = Validar.nombre(s.contraparteApellidos(), "los apellidos de la contraparte");
+        } else if ("JURIDICA".equals(s.contraparteTipo())) {
+            cpR = Validar.razonSocial(s.contraparteRazonSocial());
+        }
+        return new SolicitudConsulta(nombres, apellidos, s.tipoDocumento(), nro, tel, email, s.idMateria(), resumen,
+                s.esUrgente(), s.aceptaDatos(), vacio(s.contraparteTipo()) ? null : s.contraparteTipo(), cpN, cpA, cpR);
     }
 
     private static boolean vacio(String x) { return x == null || x.isBlank(); }

@@ -167,3 +167,6 @@ body.landing { font-family: "Inter", "Segoe UI", Arial, sans-serif; color: #1E24
   .landing .seccion { padding: 64px 0; }
   .topbar span:nth-child(2) { display: none; }
 }
+.pista { display: block; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.campo.ok input { border-color: #43A047; }
+.campo.error .pista { display: none; }
