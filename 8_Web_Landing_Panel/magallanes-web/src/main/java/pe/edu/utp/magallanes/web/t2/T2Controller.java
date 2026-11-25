@@ -65,6 +65,15 @@ public class T2Controller {
         return repo.registrarPropuesta(datos);
     }
 
+    /** W08 · El cliente firmó en el estudio un contrato que estaba pendiente de firma digital. */
+    @PostMapping("/contratos/{id}/firma-presencial")
+    public Map<String, Object> firmaPresencial(@PathVariable int id, @RequestBody(required = false) Map<String, Object> datos) throws SQLException {
+        return repo.firmaPresencial(id, datos == null ? Map.of() : datos);
+    }
+
+    @GetMapping("/contratos-por-firmar")
+    public List<Map<String, Object>> contratosPorFirmar() throws SQLException { return repo.contratosPorFirmar(); }
+
     // ---------------- W09 · Apertura del expediente (SQL Server + MongoDB «expedientes»)
     @GetMapping("/contratos-sin-caso")
     public List<Map<String, Object>> contratosSinCaso() throws SQLException { return repo.contratosSinCaso(); }

@@ -1,5 +1,23 @@
 # Registro de cambios
 
+## 25/11/2026 · Portal del cliente, firma del contrato, expediente y campana de avisos (alineado al TO-BE)
+- **Portal del cliente** (`/portal/index.html`, responsive para celular): ingreso con DNI/RUC o correo (tabla USUARIO con `id_persona`,
+  que ya existía en el modelo de 36 tablas). Muestra tareas pendientes, sus casos con la barra de etapas, audiencias, línea de tiempo y
+  documentos presentados, sus cuotas (pagadas / por pagar / vencidas) y los avisos del estudio.
+- **Firma del contrato**: en W08 la secretaria elige *Digital* (el contrato queda **pendiente de firma** y el cliente lo firma en el portal
+  dibujando su firma) o *Presencial* (firmó en el estudio). La firma digital se guarda en MongoDB `archivos` (tipo CONTRATO, `firma.imagen_png`).
+  Hasta que el contrato esté firmado no se facturan sus cuotas ni se abre el expediente (W09).
+  - Único cambio en la base: `contrato.fecha_firma` admite NULL + columna nueva `contrato.modalidad_firma` (DIGITAL/PRESENCIAL) + 2 CHECK
+    (`1_SQL_Server/magallanes_montero_portal_firma.sql`; también actualizados el script v36, el explicado y los datos de prueba). Siguen siendo 36 tablas.
+  - Si el cliente no tenía cuenta del portal, se crea al registrar su contrato (usuario = N.° de documento).
+- **Encuesta**: al cerrar el caso le llega al cliente y la responde **él** en su portal (antes la llenaba la secretaria). En el panel,
+  la pestaña *Encuestas enviadas* solo hace el seguimiento.
+- **Expediente** (Escritos y resoluciones): ficha nueva con barra de etapas, semáforo de plazos, próximas audiencias, partes,
+  línea de tiempo, documentos con sus versiones de MongoDB y bitácora interna. El portal usa la misma ficha sin datos internos.
+- **Campana de avisos** en el panel (tabla NOTIFICACION, canal SISTEMA): firma del cliente, nueva consulta desde la web,
+  encuesta respondida y plazos a su cargo que vencen en 3 días.
+- Landing: botón «Soy cliente» y enlace al portal; login del panel con enlace al portal.
+
 ## 24/11/2026 · Informes actualizados
 - Informe técnico: nueva lectura del `.env` (MagallanesWebApplication), login bloqueado, creación automática de colecciones MongoDB,
   validación de datos en 3 niveles (sección 12), diagramas y compatibilidad SSMS 20 / SQL Server 2025 (sección 13), estructura con archivos nuevos.

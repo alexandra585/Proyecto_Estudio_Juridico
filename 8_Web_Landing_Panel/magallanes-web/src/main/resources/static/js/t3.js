@@ -18,7 +18,13 @@ async function cambiarCaso() {
   await cargarMovimientos();
 }
 
+async function cargarFicha() {
+  try { renderFicha($("ficha"), await api(`../api/panel/t3/casos/${caso()}/ficha`)); }
+  catch (e) { $("ficha").innerHTML = `<div class="vacio" style="color:var(--rojo)">${esc(e.message)}</div>`; }
+}
+
 async function cargarMovimientos() {
+  cargarFicha();
   const [docs, pres, res, plazos] = await Promise.all([api(`../api/panel/t3/casos/${caso()}/documentos`),
     api(`../api/panel/t3/casos/${caso()}/presentaciones`), api(`../api/panel/t3/casos/${caso()}/resoluciones`),
     api(`../api/panel/t3/casos/${caso()}/plazos-pendientes`)]);

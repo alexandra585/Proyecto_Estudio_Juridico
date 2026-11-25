@@ -20,8 +20,19 @@ import pe.edu.utp.magallanes.web.dto.SesionUsuario;
 @RequestMapping("/api/panel/t3")
 public class T3Controller {
     private final T3Repositorio repo;
+    private final pe.edu.utp.magallanes.web.expediente.ExpedienteRepositorio expedientes;
 
-    public T3Controller(T3Repositorio repo) { this.repo = repo; }
+    public T3Controller(T3Repositorio repo, pe.edu.utp.magallanes.web.expediente.ExpedienteRepositorio expedientes) {
+        this.repo = repo; this.expedientes = expedientes;
+    }
+
+    /** Ficha completa del expediente (etapas, semáforo de plazos, línea de tiempo, documentos y versiones, bitácora). */
+    @GetMapping("/casos/{id}/ficha")
+    public Map<String, Object> ficha(@PathVariable int id) throws SQLException { return expedientes.ficha(id, false); }
+
+    /** Todos los casos (activos y cerrados) para consultar su expediente. */
+    @GetMapping("/casos-todos")
+    public List<Map<String, Object>> casosTodos() throws SQLException { return repo.casosTodos(); }
 
     @GetMapping("/casos-activos")
     public List<Map<String, Object>> casosActivos() throws SQLException { return repo.casosActivos(); }

@@ -93,6 +93,10 @@ public class ConsultaRepositorio {
                     ps.executeUpdate();
                     idNotificacion = Jdbc.idGenerado(ps);
                 }
+                // 5) Aviso en la campana del panel para secretaría y gerencia (canal SISTEMA)
+                pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio.avisarEquipo(cn, java.util.List.of("SECRETARIA", "ADMINISTRADOR"), null,
+                        idConsulta, null, "CONFIRMACION_CONSULTA", "Nueva consulta N.° " + idConsulta + " desde la página web: "
+                        + s.nombres().trim() + (s.esUrgente() ? " (URGENTE)" : "") + ".");
 
                 cn.commit();                                           // COMMIT: las 4 tablas juntas
                 return new RespuestaConsulta(idConsulta, idPersona, nueva, idContraparte, idNotificacion, mensaje);

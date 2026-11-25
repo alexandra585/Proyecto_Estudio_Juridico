@@ -38,8 +38,8 @@ public class AuthController {
         if (!cuenta.activo()) throw new ReglaNegocioException("Su cuenta está bloqueada (usuario.activo = 0).");
         usuarios.registrarAcceso(cuenta.idUsuario());
         SesionUsuario s = new SesionUsuario(cuenta.idUsuario(), cuenta.idEmpleado(), cuenta.nombre(), cuenta.cargo(), cuenta.email());
-        HttpSession anterior = req.getSession(false);
-        if (anterior != null) anterior.invalidate();
+        // Nuevo id de sesión (evita fijación de sesión) sin cerrar la otra cuenta: panel y portal pueden convivir en el mismo navegador
+        if (req.getSession(false) != null) req.changeSessionId();
         req.getSession(true).setAttribute(SesionInterceptor.USUARIO, s);
         return s;
     }
@@ -54,7 +54,7 @@ public class AuthController {
     @PostMapping("/salir")
     public Map<String, String> salir(HttpServletRequest req) {
         HttpSession s = req.getSession(false);
-        if (s != null) s.invalidate();
+        if (s != null) s.removeAttribute(SesionInterceptor.USUARIO);
         return Map.of("ok", "Sesión cerrada");
     }
 }

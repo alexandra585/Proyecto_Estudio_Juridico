@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14254A">
+  <title>Portal del cliente · Magallanes-Montero Abogados</title>
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/ficha.css"><link rel="stylesheet" href="../css/portal.css">
+</head>
+<body class="portal">
+<header class="p-top">
+  <div class="contenedor">
+    <a class="logo" href="../index.html"><span class="logo-mm">MM</span><span><b>Magallanes-Montero</b><small>PORTAL DEL CLIENTE</small></span></a>
+    <div class="esp"></div>
+    <div class="p-user" id="p-user" hidden><div class="av" id="p-av">··</div><span class="nom" id="p-nom"></span><button type="button" id="p-salir">Salir</button></div>
+  </div>
+</header>
+
+<!-- ============ INGRESO (tabla USUARIO con id_persona) ============ -->
+<section class="p-login" id="p-login" hidden>
+  <div class="p-login-izq">
+    <h1>Su caso, en su celular.</h1>
+    <p>Desde aquí sigue su expediente sin llamar al estudio.</p>
+    <ul>
+      <li><span>⚖</span> Etapa actual, audiencias y movimientos de su caso</li>
+      <li><span>✍</span> Firma de su contrato desde el celular</li>
+      <li><span>💳</span> Sus cuotas: pagadas, pendientes y por vencer</li>
+      <li><span>★</span> Encuesta de satisfacción al terminar su caso</li>
+    </ul>
+  </div>
+  <div class="p-login-der">
+    <form class="p-caja" id="f-login" novalidate>
+      <h2>Ingresar</h2>
+      <p>Use el acceso que le entregó el estudio al firmar su contrato.</p>
+      <div class="campo"><label for="l-usuario">DNI, RUC o correo</label><input id="l-usuario" autocomplete="username" inputmode="text" placeholder="Ej.: 45123678"></div>
+      <div class="campo"><label for="l-clave">Contraseña</label><input id="l-clave" type="password" autocomplete="current-password"></div>
+      <div class="alerta" id="l-alerta"></div>
+      <button class="btn btn-oro" type="submit" id="l-btn">Ingresar a mi portal</button>
+      <div class="p-demo"><b>Cuentas de prueba</b> (contraseña <b>Cliente2026!</b>):<br>
+        <button type="button" data-demo="40987123">María Torres · DNI 40987123</button> — tiene un contrato por firmar<br>
+        <button type="button" data-demo="45123678">Juan Pérez · DNI 45123678</button> — caso concluido<br>
+        <button type="button" data-demo="43215678">Rosa Huamán · DNI 43215678</button> — caso en trámite</div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ APLICACIÓN ============ -->
+<main class="contenedor p-app" id="p-app" hidden>
+  <div class="p-saludo"><h1 id="p-hola">Hola</h1><p id="p-sub"></p></div>
+  <nav class="p-tabs" id="p-tabs">
+    <button type="button" data-s="inicio" class="activo">Inicio</button>
+    <button type="button" data-s="casos">Mis casos</button>
+    <button type="button" data-s="pagos">Mis pagos</button>
+    <button type="button" data-s="avisos">Avisos <span class="n" id="n-avisos" hidden></span></button>
+  </nav>
+
+  <section class="p-sec" id="s-inicio">
+    <h2>Lo que necesita de usted</h2>
+    <div class="p-tareas" id="tareas"></div>
+    <h2>Sus casos</h2>
+    <div class="p-casos" id="casos-ini"></div>
+  </section>
+
+  <section class="p-sec" id="s-casos" hidden>
+    <div id="casos-lista"><h2>Mis casos</h2><div class="p-casos" id="casos-todos"></div>
+      <h2>Mis contratos</h2><div id="contratos"></div></div>
+    <div id="caso-det" hidden><button class="p-volver" type="button" id="volver">← Volver a mis casos</button><div class="p-ficha" id="ficha"></div></div>
+  </section>
+
+  <section class="p-sec" id="s-pagos" hidden>
+    <h2>Mis pagos</h2>
+    <div class="p-kpis" id="kpis"></div>
+    <div id="cuotas"></div>
+    <p class="p-nota">Los pagos se realizan por transferencia, Yape/Plin o en el estudio. Cuando el estudio registra su pago, la cuota cambia a <b>PAGADA</b>.</p>
+  </section>
+
+  <section class="p-sec" id="s-avisos" hidden>
+    <h2>Avisos del estudio</h2>
+    <div id="avisos"></div>
+  </section>
+</main>
+
+<nav class="p-nav" id="p-nav" hidden>
+  <button type="button" data-s="inicio" class="activo"><span>⌂</span>Inicio</button>
+  <button type="button" data-s="casos"><span>⚖</span>Casos</button>
+  <button type="button" data-s="pagos"><span>💳</span>Pagos</button>
+  <button type="button" data-s="avisos"><span>🔔</span>Avisos<i class="n" id="n-avisos2" hidden></i></button>
+</nav>
+
+<!-- Ventana: contrato y firma digital -->
+<div class="p-modal" id="m-contrato" hidden>
+  <div class="p-modal-caja">
+    <div class="p-modal-cab"><b id="mc-tit">Contrato</b><button type="button" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="p-modal-cuerpo" id="mc-cuerpo"></div>
+  </div>
+</div>
+<!-- Ventana: encuesta -->
+<div class="p-modal" id="m-encuesta" hidden>
+  <div class="p-modal-caja">
+    <div class="p-modal-cab"><b id="me-tit">Encuesta de satisfacción</b><button type="button" data-cerrar aria-label="Cerrar">✕</button></div>
+    <form class="p-modal-cuerpo" id="me-form" novalidate></form>
+  </div>
+</div>
+
+<script src="../js/ficha.js"></script>
+<script src="../js/portal.js"></script>
+</body>
+</html>

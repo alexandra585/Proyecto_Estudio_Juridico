@@ -201,14 +201,14 @@ GO
 
 -- CONTRATO (7): uno por cada propuesta aceptada (relación 1:1). Los ObjectId son de ejemplo.
 -- id_cliente = quien contrata; aquí coincide con la persona que hizo la consulta.
-INSERT INTO contrato (id_propuesta, id_cliente, nro_contrato, fecha_firma, tipo_encargo, modalidad_pago, con_carta_poder, archivo_mongo_id) VALUES
-(1,1,'CT-2026-0001','2026-01-20','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a01'),  -- 1
-(2,2,'CT-2026-0002','2026-02-12','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a02'),  -- 2
-(4,3,'CT-2026-0003','2026-03-16','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a03'),  -- 3
-(5,4,'CT-2026-0004','2026-03-25','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a04'),  -- 4
-(6,12,'CT-2026-0005','2026-07-01','REPRESENTACION','IGUALA_MENSUAL',0,'65a1b2c3d4e5f60718293a05'),  -- 5
-(7,10,'CT-2026-0006','2026-06-28','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a06'),  -- 6
-(8,8,'CT-2026-0007','2026-10-22','PRO_BONO',      'UNICO',         1,'65a1b2c3d4e5f60718293a07');  -- 7 (sin cuotas)
+INSERT INTO contrato (id_propuesta, id_cliente, nro_contrato, fecha_firma, modalidad_firma, tipo_encargo, modalidad_pago, con_carta_poder, archivo_mongo_id) VALUES
+(1,1,'CT-2026-0001','2026-01-20','PRESENCIAL','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a01'),  -- 1
+(2,2,'CT-2026-0002','2026-02-12','PRESENCIAL','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a02'),  -- 2
+(4,3,'CT-2026-0003','2026-03-16','PRESENCIAL','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a03'),  -- 3
+(5,4,'CT-2026-0004','2026-03-25','PRESENCIAL','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a04'),  -- 4
+(6,12,'CT-2026-0005','2026-07-01','PRESENCIAL','REPRESENTACION','IGUALA_MENSUAL',0,'65a1b2c3d4e5f60718293a05'),  -- 5
+(7,10,'CT-2026-0006','2026-06-28','PRESENCIAL','PATROCINIO',    'CUOTAS',        1,'65a1b2c3d4e5f60718293a06'),  -- 6
+(8,8,'CT-2026-0007','2026-10-22','PRESENCIAL','PRO_BONO',      'UNICO',         1,'65a1b2c3d4e5f60718293a07');  -- 7 (sin cuotas)
 GO
 
 -- CUOTA (22): cronogramas de cobro. «Vencida» no se guarda: las cuotas 10 y 22 quedan PENDIENTE y vw_cuota_estado las muestra como VENCIDA. La cuota litis (id 4) se vincula a su liquidación más abajo.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>W11–W13 · Gestión del expediente · Magallanes-Montero</title>
-  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css">
+  <link rel="stylesheet" href="../css/estilos.css"><link rel="stylesheet" href="../css/panel.css"><link rel="stylesheet" href="../css/ficha.css">
   <script src="../js/bd.js"></script>
 </head>
 <body class="panel">
@@ -25,6 +25,10 @@
       </div>
     </div>
 
+    <!-- Ficha del expediente: etapas, semáforo de plazos, línea de tiempo, documentos y versiones -->
+    <div class="tarjeta" id="ficha"><div class="vacio">Elija un caso.</div></div>
+
+    <h2 style="margin:22px 0 0;color:var(--navy);font-size:17px">Registrar una actuación</h2>
     <div class="pestanas"><button type="button" data-p="w11" class="activo"><span class="solo-tec">W11 · </span>Nuevo escrito</button>
       <button type="button" data-p="w12"><span class="solo-tec">W12 · </span>Presentación</button>
       <button type="button" data-p="w13"><span class="solo-tec">W13 · </span>Resolución y plazo</button></div>
@@ -136,6 +140,7 @@
 <script src="../js/menu.js"></script>
 <script src="../js/ayudas.js"></script>
 <script src="../js/comun.js"></script>
+<script src="../js/ficha.js"></script>
 <script src="../js/t3.js"></script>
 </body>
 </html>

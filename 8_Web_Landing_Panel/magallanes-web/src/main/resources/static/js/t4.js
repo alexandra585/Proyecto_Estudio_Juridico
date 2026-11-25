@@ -121,59 +121,24 @@ async function cerrar(id, b) {
   try {
     const r = await postJSON(`../api/panel/t4/casos/${id}/cerrar`);
     traza($("r21"), "Transacción W21", [`<b>CASO_ETAPA</b> etapa actual cerrada + etapa «Cerrado»`, `<b>CASO</b> id_caso = ${r.idCaso} → CERRADO`,
-      `<b>ENCUESTA</b> id_encuesta = ${r.idEncuesta} · enviada`, `<b>NOTIFICACION</b> ENVIO_ENCUESTA por WhatsApp`, `<b>MongoDB · encuestas</b> _id = ${esc(r.encuestaMongoId || "—")} · ENVIADA`],
+      `<b>ENCUESTA</b> id_encuesta = ${r.idEncuesta} · enviada`, `<b>NOTIFICACION</b> ENVIO_ENCUESTA por WhatsApp · el cliente la responde en su portal`, `<b>MongoDB · encuestas</b> _id = ${esc(r.encuestaMongoId || "—")} · ENVIADA`],
       r.aviso, r.mensaje, r.encuestaMongoId ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${r.idEncuesta}/mongo')">Ver el documento en MongoDB</button>` : "");
     await Promise.all([cargarCerrar(), cargarEncuestas()]);
   } catch (err) { mostrarError(a, err); b.disabled = false; }
 }
 
-// ---------------- W22
+// ---------------- W22 · seguimiento (el cliente responde en su portal)
 async function cargarFormulario() {
   const f = await api("../api/panel/t4/formulario-encuesta");
-  $("s-origen").innerHTML = `Preguntas leídas de <b>${esc(f.origen)}</b> (versión ${esc(f.version)}). <span class="bd">formularios_encuesta: las preguntas cambian sin modificar tablas</span>`;
-  respuestas = {};
-  $("s-preguntas").innerHTML = f.preguntas.map((p) => {
-    let ctrl = "";
-    if (p.tipo === "ESTRELLAS_1_5") ctrl = `<div class="estrellas" data-k="${esc(p.clave)}">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-v="${n}">★</button>`).join("")}</div>`;
-    else if (p.tipo === "NPS_0_10") ctrl = `<div class="nps-escala" data-k="${esc(p.clave)}">${[...Array(11).keys()].map((n) => `<button type="button" data-v="${n}">${n}</button>`).join("")}</div>`;
-    else if (p.tipo === "SI_NO") ctrl = `<div class="radios" data-k="${esc(p.clave)}"><label><input type="radio" name="r-${esc(p.clave)}" value="Sí"> Sí</label><label><input type="radio" name="r-${esc(p.clave)}" value="No"> No</label></div>`;
-    else ctrl = `<input data-k="${esc(p.clave)}" class="txt-resp">`;
-    const tag = p.clave === "calificacion" ? "encuesta.calificacion + Mongo" : p.clave === "nps" ? "encuesta.nps + Mongo" : "solo MongoDB · encuestas.respuestas." + p.clave;
-    return `<div class="campo" style="margin-top:10px"><label>${esc(p.texto)}</label>${ctrl}<span class="bd">${esc(tag)}</span></div>`;
-  }).join("");
-  document.querySelectorAll(".estrellas, .nps-escala").forEach((g) => g.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
-    respuestas[g.dataset.k] = Number(b.dataset.v);
-    g.querySelectorAll("button").forEach((x) => x.classList.toggle("on", g.classList.contains("estrellas") ? Number(x.dataset.v) <= Number(b.dataset.v) : x === b));
-  })));
+  $("s-origen").innerHTML = `El portal muestra al cliente ${f.preguntas.length} preguntas leídas de <b>${esc(f.origen)}</b> (versión ${esc(f.version)}). <span class="bd">formularios_encuesta: las preguntas cambian sin modificar tablas</span>`;
 }
 async function cargarEncuestas() {
   const [pend, resp] = await Promise.all([api("../api/panel/t4/encuestas-pendientes"), api("../api/panel/t4/encuestas-respondidas")]);
-  opciones($("s-enc"), pend, "id_encuesta", (e) => `N.° ${e.id_encuesta} · ${e.codigo_interno} · ${e.cliente}`, pend.length ? null : "No hay encuestas pendientes (cierre un caso en W21)");
-  tabla($("t-enc"), resp, [{ f: (e) => e.id_encuesta }, { f: (e) => esc(e.codigo_interno) }, { f: (e) => e.calificacion }, { f: (e) => e.nps },
+  tabla($("t-enc-pend"), pend, [{ f: (e) => e.id_encuesta }, { f: (e) => esc(e.codigo_interno) }, { f: (e) => esc(e.cliente) }, { f: (e) => esc(e.enviada) }],
+    "No hay encuestas esperando respuesta.");
+  tabla($("t-enc"), resp, [{ f: (e) => e.id_encuesta }, { f: (e) => esc(e.codigo_interno) }, { f: (e) => "★".repeat(e.calificacion || 0) }, { f: (e) => e.nps },
     { f: (e) => `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${e.id_encuesta}/mongo')">JSON</button>` }], "Sin respuestas.");
 }
-$("w22").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const a = $("a22"); a.className = "alerta";
-  if (!$("s-enc").value) { a.className = "alerta mal"; a.textContent = "No hay encuesta pendiente."; return; }
-  document.querySelectorAll(".radios[data-k]").forEach((g) => { const r = g.querySelector("input:checked"); if (r) respuestas[g.dataset.k] = r.value; });
-  document.querySelectorAll(".txt-resp").forEach((i) => { if (i.value.trim()) respuestas[i.dataset.k] = i.value.trim(); });
-  if (respuestas.calificacion == null || respuestas.nps == null) { a.className = "alerta mal"; a.textContent = "Marque las estrellas y el NPS."; return; }
-  const extra = { ...respuestas }; delete extra.calificacion; delete extra.nps;
-  const b = $("b22"); b.disabled = true;
-  try {
-    const id = Number($("s-enc").value);
-    const firma = (document.querySelector('input[name="firma"]:checked') || {}).value || "INICIALES";
-    const r = await postJSON(`../api/panel/t4/encuestas/${id}/responder`, { calificacion: respuestas.calificacion, nps: respuestas.nps,
-      comentario: $("s-com").value.trim(), respuestas: extra, autorizaPublicar: $("s-pub").checked, firma });
-    traza($("r22"), "Transacción W22", [`<b>ENCUESTA</b> id_encuesta = ${id} · calificación ${respuestas.calificacion} · NPS ${respuestas.nps}`,
-      `<b>MongoDB · encuestas</b> respuestas completas (${Object.keys(extra).length + 2} preguntas) · RESPONDIDA`,
-      `<b>MongoDB · encuestas.publicacion</b> ${r.publicable ? `autoriza = true · se mostrará en la web como «${esc(r.nombrePublico)}»` : "autoriza = false · no se publica"}`], r.aviso, r.mensaje,
-      `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${id}/mongo')">Ver el documento en MongoDB</button>`);
-    $("s-com").value = ""; $("s-pub").checked = false;
-    await Promise.all([cargarEncuestas(), cargarFormulario()]);
-  } catch (err) { mostrarError(a, err); } finally { b.disabled = false; }
-});
 
 // ---------------- Resultados de las encuestas (promedio, NPS y comentarios con el nombre del cliente)
 async function cargarResultados() {

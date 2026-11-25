@@ -33,8 +33,11 @@ public class PanelController {
     private final CitaRepositorio citas;
     private final DashboardRepositorio dashboard;
     private final InicioRepositorio inicio;
+    private final pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio avisos;
 
-    public PanelController(ConsultaRepositorio consultas, CitaRepositorio citas, DashboardRepositorio dashboard, InicioRepositorio inicio) {
+    public PanelController(ConsultaRepositorio consultas, CitaRepositorio citas, DashboardRepositorio dashboard, InicioRepositorio inicio,
+                           pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio avisos) {
+        this.avisos = avisos;
         this.consultas = consultas;
         this.citas = citas;
         this.dashboard = dashboard;
@@ -45,6 +48,12 @@ public class PanelController {
     @GetMapping("/inicio")
     public java.util.Map<String, Object> inicio(HttpSession s) throws SQLException {
         return inicio.inicio(Sesion.usuario(s));
+    }
+
+    /** Campana de avisos: NOTIFICACION del empleado (canal SISTEMA y otros) + plazos a su cargo que vencen pronto. */
+    @GetMapping("/avisos")
+    public java.util.Map<String, Object> avisos(HttpSession s) throws SQLException {
+        return avisos.delEmpleado(Sesion.usuario(s).idEmpleado());
     }
 
     /** W03 · Dashboard gerencial: indicadores calculados por las vistas vw_dash_* de SQL Server. */

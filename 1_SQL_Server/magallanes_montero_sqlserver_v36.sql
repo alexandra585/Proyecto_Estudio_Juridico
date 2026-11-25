@@ -260,7 +260,8 @@ CREATE TABLE dbo.contrato (
   id_propuesta INT NOT NULL,  -- R10 (1:1)
   id_cliente INT NOT NULL,  -- Quién contrata: el cliente del caso (puede no ser quien hizo la consulta)
   nro_contrato NVARCHAR(20) NOT NULL,
-  fecha_firma DATE NOT NULL,
+  fecha_firma DATE NULL,  -- NULL = pendiente de firma del cliente (portal)
+  modalidad_firma VARCHAR(10) NULL,  -- DIGITAL (portal) o PRESENCIAL (estudio); NULL mientras está pendiente
   tipo_encargo VARCHAR(14) NOT NULL,
   modalidad_pago VARCHAR(14) NOT NULL,
   con_carta_poder BIT NOT NULL CONSTRAINT df_contrato_con_carta_poder DEFAULT 0,
@@ -270,6 +271,8 @@ CREATE TABLE dbo.contrato (
   CONSTRAINT uq_contrato_nro_contrato UNIQUE (nro_contrato),
   CONSTRAINT ck_contrato_tipo_encargo CHECK (tipo_encargo IN ('PATROCINIO', 'REPRESENTACION', 'TRAMITE', 'PRO_BONO')),
   CONSTRAINT ck_contrato_modalidad_pago CHECK (modalidad_pago IN ('UNICO', 'CUOTAS', 'IGUALA_MENSUAL')),
+  CONSTRAINT ck_contrato_modalidad_firma CHECK (modalidad_firma IS NULL OR modalidad_firma IN ('DIGITAL', 'PRESENCIAL')),  -- Firma en el portal o en el estudio.
+  CONSTRAINT ck_contrato_firma_completa CHECK ((fecha_firma IS NULL AND modalidad_firma IS NULL) OR (fecha_firma IS NOT NULL AND modalidad_firma IS NOT NULL)),  -- Regla: firmado = fecha + modalidad; pendiente = ambos NULL.
   CONSTRAINT fk_contrato_id_propuesta FOREIGN KEY (id_propuesta) REFERENCES dbo.propuesta(id_propuesta),
   CONSTRAINT fk_contrato_id_cliente FOREIGN KEY (id_cliente) REFERENCES dbo.persona(id_persona)
 );

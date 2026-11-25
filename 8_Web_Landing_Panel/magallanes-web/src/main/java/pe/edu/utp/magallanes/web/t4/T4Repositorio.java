@@ -53,7 +53,7 @@ public class T4Repositorio {
         return q("SELECT k.id_cliente, COALESCE(p.razon_social, p.nombres + ' ' + p.apellidos) AS cliente, "
                 + "COALESCE(p.tipo_documento + ' ' + p.nro_documento, 'SIN DOCUMENTO') AS documento, p.tipo_persona, COUNT(*) AS cuotas "
                 + "FROM dbo.cuota q JOIN dbo.contrato k ON k.id_contrato = q.id_contrato JOIN dbo.persona p ON p.id_persona = k.id_cliente "
-                + "WHERE q.estado = 'PENDIENTE' AND NOT EXISTS (SELECT 1 FROM dbo.detalle_comprobante dc "
+                + "WHERE q.estado = 'PENDIENTE' AND k.fecha_firma IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.detalle_comprobante dc "
                 + "  JOIN dbo.comprobante c ON c.id_comprobante = dc.id_comprobante WHERE dc.id_cuota = q.id_cuota AND c.estado <> 'ANULADO') "
                 + "GROUP BY k.id_cliente, p.razon_social, p.nombres, p.apellidos, p.tipo_documento, p.nro_documento, p.tipo_persona ORDER BY cliente");
     }
@@ -61,7 +61,7 @@ public class T4Repositorio {
     public List<Map<String, Object>> cuotasPorFacturar(int idCliente) throws SQLException {
         return q("SELECT q.id_cuota, k.nro_contrato, q.nro_cuota, q.concepto, q.monto, FORMAT(q.fecha_vencimiento, 'dd/MM/yyyy') AS vence, v.estado "
                 + "FROM dbo.cuota q JOIN dbo.contrato k ON k.id_contrato = q.id_contrato JOIN dbo.vw_cuota_estado v ON v.id_cuota = q.id_cuota "
-                + "WHERE k.id_cliente = ? AND q.estado = 'PENDIENTE' AND NOT EXISTS (SELECT 1 FROM dbo.detalle_comprobante dc "
+                + "WHERE k.id_cliente = ? AND q.estado = 'PENDIENTE' AND k.fecha_firma IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.detalle_comprobante dc "
                 + "  JOIN dbo.comprobante c ON c.id_comprobante = dc.id_comprobante WHERE dc.id_cuota = q.id_cuota AND c.estado <> 'ANULADO') "
                 + "ORDER BY q.fecha_vencimiento", idCliente);
     }
@@ -334,7 +334,7 @@ public class T4Repositorio {
                         "INSERT INTO dbo.notificacion (id_persona, id_caso, tipo_evento, canal, mensaje, fecha_programada) "
                       + "VALUES (?, ?, 'ENVIO_ENCUESTA', 'WHATSAPP', ?, SYSDATETIME())")) {
                     ps.setInt(1, idCliente); ps.setInt(2, idCaso);
-                    ps.setString(3, "Su caso " + codigo + " ha concluido. ¿Nos ayuda con una encuesta de 1 minuto? (encuesta N.° " + idEnc + ")");
+                    ps.setString(3, "Su caso " + codigo + " ha concluido. ¿Nos ayuda con una encuesta de 1 minuto? Respóndala en su portal del cliente (encuesta N.° " + idEnc + ").");
                     ps.executeUpdate();
                 }
                 // 5) MongoDB «encuestas»: documento ENVIADA (las respuestas llegan en W22)

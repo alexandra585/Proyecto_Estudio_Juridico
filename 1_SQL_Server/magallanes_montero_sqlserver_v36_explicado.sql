@@ -386,7 +386,8 @@ CREATE TABLE dbo.contrato (  -- Crea la tabla contrato en el esquema dbo (el esq
   id_propuesta INT NOT NULL,  -- FK → propuesta(id_propuesta): solo acepta valores que existan allí; número entero; obligatorio; no se puede repetir; R10 (1:1)
   id_cliente INT NOT NULL,  -- FK → persona(id_persona): solo acepta valores que existan allí; número entero; obligatorio; Quién contrata: el cliente del caso (puede no ser quien hizo la consulta)
   nro_contrato NVARCHAR(20) NOT NULL,  -- texto Unicode (tildes, ñ) de hasta 20 caracteres; obligatorio; no se puede repetir
-  fecha_firma DATE NOT NULL,  -- fecha (año-mes-día); obligatorio
+  fecha_firma DATE NULL,  -- fecha (año-mes-día); NULL = pendiente de firma del cliente en el portal
+  modalidad_firma VARCHAR(10) NULL,  -- DIGITAL (firma en el portal) o PRESENCIAL (firma en el estudio); NULL mientras está pendiente
   tipo_encargo VARCHAR(14) NOT NULL,  -- VARCHAR(14) + CHECK: solo acepta PATROCINIO, REPRESENTACION, TRAMITE, PRO_BONO; obligatorio
   modalidad_pago VARCHAR(14) NOT NULL,  -- VARCHAR(14) + CHECK: solo acepta UNICO, CUOTAS, IGUALA_MENSUAL; obligatorio
   con_carta_poder BIT NOT NULL CONSTRAINT df_contrato_con_carta_poder DEFAULT 0,  -- sí/no (1 = sí, 0 = no); obligatorio; si no se envía vale 0
@@ -396,6 +397,8 @@ CREATE TABLE dbo.contrato (  -- Crea la tabla contrato en el esquema dbo (el esq
   CONSTRAINT uq_contrato_nro_contrato UNIQUE (nro_contrato),  -- UNIQUE: no pueden existir dos filas con el mismo nro_contrato.
   CONSTRAINT ck_contrato_tipo_encargo CHECK (tipo_encargo IN ('PATROCINIO', 'REPRESENTACION', 'TRAMITE', 'PRO_BONO')),  -- Reemplaza al ENUM de MySQL: tipo_encargo solo acepta los valores de la lista.
   CONSTRAINT ck_contrato_modalidad_pago CHECK (modalidad_pago IN ('UNICO', 'CUOTAS', 'IGUALA_MENSUAL')),  -- Reemplaza al ENUM de MySQL: modalidad_pago solo acepta los valores de la lista.
+  CONSTRAINT ck_contrato_modalidad_firma CHECK (modalidad_firma IS NULL OR modalidad_firma IN ('DIGITAL', 'PRESENCIAL')),  -- Firma en el portal o en el estudio.
+  CONSTRAINT ck_contrato_firma_completa CHECK ((fecha_firma IS NULL AND modalidad_firma IS NULL) OR (fecha_firma IS NOT NULL AND modalidad_firma IS NOT NULL)),  -- Regla: firmado = fecha + modalidad; pendiente = ambos NULL.
   CONSTRAINT fk_contrato_id_propuesta FOREIGN KEY (id_propuesta) REFERENCES dbo.propuesta(id_propuesta),  -- FK: id_propuesta debe existir en propuesta.id_propuesta.
   CONSTRAINT fk_contrato_id_cliente FOREIGN KEY (id_cliente) REFERENCES dbo.persona(id_persona)  -- FK: id_cliente debe existir en persona.id_persona.
 );  -- Fin de la tabla.

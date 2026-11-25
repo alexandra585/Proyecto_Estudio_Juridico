@@ -23,7 +23,8 @@
       <div style="overflow-x:auto"><table class="tabla mini">
         <thead><tr><th>Contrato</th><th>N.°</th><th>Firma</th><th>Cliente</th><th>Materia</th><th>Abogado</th><th>Encargo</th></tr></thead>
         <tbody id="contratos"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody></table></div>
-      <div class="fila-bd bd">contrato (sin fila en caso · UNIQUE caso.id_contrato 1:1) ⋈ propuesta ⋈ consulta ⋈ materia ⋈ persona</div>
+      <div class="fila-bd bd">contrato (fecha_firma NOT NULL y sin fila en caso · UNIQUE caso.id_contrato 1:1) ⋈ propuesta ⋈ consulta ⋈ materia ⋈ persona</div>
+      <div id="por-firmar"></div>
     </div>
 
     <form class="tarjeta" id="form-caso" novalidate hidden>

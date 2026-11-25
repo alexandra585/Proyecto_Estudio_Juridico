@@ -25,6 +25,7 @@
     salir: '<path d="M9 21H5V3h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
     buscar: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
     menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+    campana: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   };
   const svg = (k) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONOS[k] || ""}</svg>`;
   const MENU = [
@@ -68,6 +69,8 @@
       <div class="ruta">Panel <span>›</span> <b>${actual ? `<span class="solo-cli">${actual.cli}</span><span class="solo-tec">${actual.tec}</span>` : ""}</b></div>
       <label class="buscador">${svg("buscar")}<input type="search" id="buscar-tablas" placeholder="Buscar en esta pantalla…" autocomplete="off"></label>
       <div class="hoy">${hoy}</div>
+      <div class="campana-zona"><button class="campana" id="campana" type="button" aria-label="Avisos">${svg("campana")}<span class="campana-n" id="campana-n" hidden>0</span></button>
+        <div class="avisos-panel" id="avisos-panel" hidden><div class="avisos-cab"><b>Avisos</b><small class="bd">NOTIFICACION (canal SISTEMA) + vw_plazo_estado</small></div><div id="avisos-lista"><div class="vacio">Cargando…</div></div></div></div>
       <span class="rol-chip" id="rol-chip">…</span>`;
     principal.prepend(barra);
     barra.querySelector(".hamb").addEventListener("click", () => document.body.classList.toggle("menu-abierto"));
@@ -111,8 +114,46 @@
         <span class="bd">empleado.cargo = '${u.cargo}' → Roles.java responde 403</span>
         <p><a class="btn btn-oro" href="inicio.html">Ir a mi inicio</a></p></div>`);
     }
+    cargarAvisos();
     document.dispatchEvent(new CustomEvent("usuario-listo", { detail: u }));
   });
+  // ---- Campana de avisos (lo «leído» se recuerda en este navegador: no se guarda en la base)
+  const ICONO_AVISO = { FIRMA_DOCUMENTO: "✍", CONFIRMACION_CONSULTA: "📩", ALERTA_PLAZO: "⏰", AVISO_AUDIENCIA: "🗓", RECORDATORIO_CUOTA: "💳",
+    CONSTANCIA_PAGO: "✅", ENVIO_ENCUESTA: "★", RECORDATORIO_CITA: "📅" };
+  const leer = () => { try { return localStorage.getItem("mm-avisos-visto") || ""; } catch (e) { return ""; } };
+  const hace = (iso) => { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    return m < 1 ? "ahora" : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+  const esc2 = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let ultimo = "";
+  async function cargarAvisos() {
+    const lista = document.getElementById("avisos-lista");
+    if (!lista) return;
+    try {
+      const r = await fetch("../api/panel/avisos"); if (!r.ok) return;
+      const d = await r.json();
+      const visto = leer();
+      ultimo = (d.avisos[0] || {}).fecha || "";
+      const nuevos = d.avisos.filter((a) => a.fecha > visto).length + d.plazos.filter((p) => p.dias_restantes <= 1).length;
+      const n = document.getElementById("campana-n"); n.hidden = !nuevos; n.textContent = nuevos > 9 ? "9+" : nuevos;
+      lista.innerHTML = d.plazos.map((p) => `<a class="aviso-it urgente" href="t3-expediente.html"><span>⏰</span><div><b>${esc2(p.codigo_interno)} · ${esc2(p.descripcion)}</b>
+          <small>${p.estado === "VENCIDO" ? "Plazo VENCIDO el " + esc2(p.vence) : p.dias_restantes === 0 ? "Vence HOY" : "Vence en " + p.dias_restantes + " día(s) · " + esc2(p.vence)}</small></div></a>`).join("")
+        + d.avisos.map((a) => `<div class="aviso-it ${a.fecha > visto ? "nuevo" : ""}"><span>${ICONO_AVISO[a.tipo_evento] || "•"}</span><div><b>${esc2(a.mensaje)}</b>
+          <small>${hace(a.fecha)}${a.codigo_interno ? " · " + esc2(a.codigo_interno) : ""} · ${esc2(a.canal)}</small></div></div>`).join("")
+        || '<div class="vacio" style="padding:18px">No tiene avisos.</div>';
+    } catch (e) { /* sin avisos */ }
+  }
+  const campana = document.getElementById("campana");
+  if (campana) {
+    campana.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const p = document.getElementById("avisos-panel"); p.hidden = !p.hidden;
+      if (!p.hidden && ultimo) { try { localStorage.setItem("mm-avisos-visto", ultimo); } catch (e) { /* sin almacenamiento */ }
+        setTimeout(() => { document.getElementById("campana-n").hidden = true; }, 600); }
+    });
+    document.addEventListener("click", (ev) => { const p = document.getElementById("avisos-panel"); if (p && !p.hidden && !p.contains(ev.target)) p.hidden = true; });
+    setInterval(cargarAvisos, 60000);
+  }
+
   document.getElementById("salir").addEventListener("click", async () => {
     await fetch("../api/auth/salir", { method: "POST" });
     location.href = "login.html";

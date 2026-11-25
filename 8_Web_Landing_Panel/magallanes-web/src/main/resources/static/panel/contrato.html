@@ -57,9 +57,18 @@
           <div class="fila">
             <div class="campo"><label for="nro">N.° de contrato *</label><input id="nro" maxlength="20">
               <span class="bd">contrato.nro_contrato (UNIQUE)</span></div>
+            <div class="campo"><label for="m-firma">¿Cómo firma el cliente? *</label>
+              <select id="m-firma"><option value="DIGITAL">Digital · en su portal (queda pendiente)</option><option value="PRESENCIAL">Presencial · ya firmó en el estudio</option></select>
+              <span class="bd">contrato.modalidad_firma (DIGITAL / PRESENCIAL)</span></div>
+          </div>
+          <div class="fila" id="fila-fecha-firma" hidden>
             <div class="campo"><label for="firma">Fecha de firma *</label><input id="firma" type="date">
               <span class="bd">contrato.fecha_firma</span></div>
+            <div></div>
           </div>
+          <div class="aviso amarillo" id="aviso-digital" style="margin-top:10px">El contrato queda <b>pendiente de firma</b>. El cliente recibe el aviso y lo firma desde su <b>portal del cliente</b>
+            (si no tiene cuenta, se crea: entra con su DNI/RUC y su contraseña inicial es ese mismo número). Hasta que firme, no se emite el comprobante del adelanto ni se abre el expediente.
+            <span class="bd">fecha_firma = NULL · modalidad_firma = NULL · USUARIO (id_persona) · NOTIFICACION (FIRMA_DOCUMENTO)</span></div>
           <div class="fila">
             <div class="campo"><label for="tipo">Tipo de encargo *</label>
               <select id="tipo"><option>PATROCINIO</option><option>REPRESENTACION</option><option>TRAMITE</option><option>PRO_BONO</option></select>
@@ -105,8 +114,8 @@
     <div class="tarjeta">
       <h2><span class="paso">3</span> Últimos contratos</h2>
       <div style="overflow-x:auto"><table class="tabla mini">
-        <thead><tr><th>Contrato</th><th>N.°</th><th>Firma</th><th>Cliente</th><th>Encargo</th><th>Pago</th><th>Cuotas</th><th>Total</th><th>Consulta</th></tr></thead>
-        <tbody id="contratos"><tr><td colspan="9" class="vacio">Cargando…</td></tr></tbody>
+        <thead><tr><th>Contrato</th><th>N.°</th><th>Firma</th><th>Cliente</th><th>Encargo</th><th>Pago</th><th>Cuotas</th><th>Total</th><th>Consulta</th><th></th></tr></thead>
+        <tbody id="contratos"><tr><td colspan="10" class="vacio">Cargando…</td></tr></tbody>
       </table></div>
       <div class="fila-bd bd">contrato ⋈ persona ⋈ propuesta ⋈ consulta · COUNT / SUM de cuota por id_contrato</div>
       <div class="sql-ssms bd-bloque">

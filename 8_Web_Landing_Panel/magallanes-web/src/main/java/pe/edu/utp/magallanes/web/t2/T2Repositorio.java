@@ -44,8 +44,11 @@ public class T2Repositorio {
 
     private final DataSource ds;
     private final MongoDocumentos mongo;
+    private final org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder bcrypt;
 
-    public T2Repositorio(DataSource ds, MongoDocumentos mongo) { this.ds = ds; this.mongo = mongo; }
+    public T2Repositorio(DataSource ds, MongoDocumentos mongo, org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder bcrypt) {
+        this.ds = ds; this.mongo = mongo; this.bcrypt = bcrypt;
+    }
 
     // =====================================================================================
     // Lecturas
@@ -127,7 +130,8 @@ public class T2Repositorio {
 
     /** Últimos contratos con su total de cuotas (para ver lo grabado). */
     public List<Map<String, Object>> contratosRecientes() throws SQLException {
-        return consulta("SELECT TOP 10 k.id_contrato, k.nro_contrato, FORMAT(k.fecha_firma, 'dd/MM/yyyy') AS fecha_firma, "
+        return consulta("SELECT TOP 10 k.id_contrato, k.nro_contrato, FORMAT(k.fecha_firma, 'dd/MM/yyyy') AS fecha_firma, k.modalidad_firma, "
+                + "CASE WHEN k.fecha_firma IS NULL THEN 'PENDIENTE_FIRMA' ELSE 'FIRMADO' END AS estado_firma, "
                 + "COALESCE(pe.razon_social, pe.nombres + ' ' + pe.apellidos) AS cliente, k.tipo_encargo, k.modalidad_pago, "
                 + "k.id_propuesta, p.id_consulta, c.estado AS estado_consulta, "
                 + "(SELECT COUNT(*) FROM dbo.cuota q WHERE q.id_contrato = k.id_contrato) AS nro_cuotas, "
@@ -167,8 +171,8 @@ public class T2Repositorio {
     // W08 · CONTRATO + CUOTAS + CONSULTA  (una sola transacción, maestro-detalle)
     // =====================================================================================
     private static final String INSERT_CONTRATO =
-            "INSERT INTO dbo.contrato (id_propuesta, id_cliente, nro_contrato, fecha_firma, tipo_encargo, modalidad_pago, con_carta_poder) "
-          + "VALUES (?, ?, ?, ?, ?, ?, ?)";                       // archivo_mongo_id queda NULL hasta subir el PDF firmado
+            "INSERT INTO dbo.contrato (id_propuesta, id_cliente, nro_contrato, fecha_firma, modalidad_firma, tipo_encargo, modalidad_pago, con_carta_poder) "
+          + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";                    // firma DIGITAL: fecha y modalidad quedan NULL hasta que el cliente firme en el portal
     private static final String INSERT_CUOTA =
             "INSERT INTO dbo.cuota (id_contrato, nro_cuota, concepto, monto, fecha_vencimiento) VALUES (?, ?, ?, ?, ?)";
                                                                    // estado = 'PENDIENTE' por DEFAULT; id_liquidacion NULL
@@ -181,7 +185,11 @@ public class T2Repositorio {
         int idPropuesta = entero(d, "idPropuesta");
         int idCliente = entero(d, "idCliente");
         String nro = texto(d, "nroContrato");
-        LocalDate fechaFirma = fecha(d, "fechaFirma");
+        // Firma: DIGITAL = el cliente firma después en su portal (queda PENDIENTE); PRESENCIAL = ya firmó en el estudio
+        String firma = Datos.tiene(d, "modalidadFirma") ? texto(d, "modalidadFirma") : "PRESENCIAL";
+        if (!Set.of("DIGITAL", "PRESENCIAL").contains(firma)) throw new ReglaNegocioException("Modalidad de firma no válida.");
+        boolean pendiente = "DIGITAL".equals(firma);
+        LocalDate fechaFirma = pendiente ? null : fecha(d, "fechaFirma");
         String tipo = texto(d, "tipoEncargo");
         String modalidad = texto(d, "modalidadPago");
         boolean cartaPoder = Boolean.TRUE.equals(d.get("conCartaPoder"));
@@ -190,7 +198,7 @@ public class T2Repositorio {
 
         if (!TIPOS_ENCARGO.contains(tipo)) throw new ReglaNegocioException("Tipo de encargo no válido.");
         if (!MODALIDADES.contains(modalidad)) throw new ReglaNegocioException("Modalidad de pago no válida.");
-        if (fechaFirma.isAfter(LocalDate.now())) throw new ReglaNegocioException("La fecha de firma no puede ser futura.");
+        if (fechaFirma != null && fechaFirma.isAfter(LocalDate.now())) throw new ReglaNegocioException("La fecha de firma no puede ser futura.");
 
         try (Connection cn = ds.getConnection()) {
             cn.setAutoCommit(false);                                   // BEGIN TRANSACTION
@@ -211,7 +219,7 @@ public class T2Repositorio {
                         honorarios = rs.getBigDecimal(2);
                     }
                 }
-                validarCronograma(cuotas, honorarios, tipo, fechaFirma);
+                validarCronograma(cuotas, honorarios, tipo, fechaFirma != null ? fechaFirma : LocalDate.now());
 
                 // ---------- 2) CONTRATO (cabecera). El trigger trg_contrato_cliente_documento exige DNI o RUC del cliente.
                 int idContrato;
@@ -219,10 +227,11 @@ public class T2Repositorio {
                     ps.setInt(1, idPropuesta);
                     ps.setInt(2, idCliente);
                     ps.setString(3, nro);
-                    ps.setDate(4, Date.valueOf(fechaFirma));
-                    ps.setString(5, tipo);
-                    ps.setString(6, modalidad);
-                    ps.setBoolean(7, cartaPoder);
+                    if (pendiente) { ps.setNull(4, java.sql.Types.DATE); ps.setNull(5, java.sql.Types.VARCHAR); }
+                    else { ps.setDate(4, Date.valueOf(fechaFirma)); ps.setString(5, "PRESENCIAL"); }
+                    ps.setString(6, tipo);
+                    ps.setString(7, modalidad);
+                    ps.setBoolean(8, cartaPoder);
                     ps.executeUpdate();
                     idContrato = idGenerado(ps);
                 }
@@ -247,6 +256,12 @@ public class T2Repositorio {
                     ps.executeUpdate();
                 }
 
+                // ---------- 5) PORTAL DEL CLIENTE: cuenta en USUARIO (id_persona) si aún no tiene + aviso para firmar
+                Map<String, Object> portal = asegurarCuentaPortal(cn, idCliente);
+                pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio.avisarCliente(cn, idCliente, idConsulta, null, "FIRMA_DOCUMENTO",
+                        pendiente ? "Su contrato " + nro + " está listo. Revíselo y fírmelo en su portal del cliente."
+                                  : "Registramos su contrato " + nro + " firmado en el estudio. Puede ver sus cuotas en su portal del cliente.");
+
                 cn.commit();                                           // COMMIT
                 Map<String, Object> r = new LinkedHashMap<>();
                 r.put("idContrato", idContrato);
@@ -254,11 +269,79 @@ public class T2Repositorio {
                 r.put("idConsulta", idConsulta);
                 r.put("idsCuota", idsCuota);
                 r.put("cuotas", cuotasDelContrato(idContrato));
-                r.put("mensaje", "Contrato " + nro + " registrado con " + idsCuota.size() + " cuota(s).");
+                r.put("pendienteFirma", pendiente);
+                r.put("portal", portal);
+                r.put("mensaje", "Contrato " + nro + " registrado con " + idsCuota.size() + " cuota(s)"
+                        + (pendiente ? ": queda PENDIENTE DE FIRMA del cliente en su portal." : " y firmado en el estudio (PRESENCIAL)."));
                 return r;
             } catch (SQLException | RuntimeException e) {
                 try { cn.rollback(); } catch (SQLException ignorada) { /* el trigger ya pudo haber hecho ROLLBACK */ }
                 throw e;                                               // ROLLBACK: ni contrato, ni cuotas, ni cambio de estado
+            }
+        }
+    }
+
+    /**
+     * Cuenta del portal del cliente (USUARIO con id_persona). Si no existe se crea: entra con su N.° de documento
+     * y la contraseña inicial es ese mismo número (solo se guarda el hash BCrypt).
+     */
+    private Map<String, Object> asegurarCuentaPortal(Connection cn, int idPersona) throws SQLException {
+        Map<String, Object> r = new LinkedHashMap<>();
+        String doc, email;
+        try (PreparedStatement ps = cn.prepareStatement("SELECT p.tipo_documento, p.nro_documento, p.email, "
+                + "(SELECT COUNT(*) FROM dbo.usuario u WHERE u.id_persona = p.id_persona) FROM dbo.persona p WHERE p.id_persona = ?")) {
+            ps.setInt(1, idPersona);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next() || rs.getString(2) == null) { r.put("creada", false); return r; }
+                doc = rs.getString(2);
+                r.put("usuario", rs.getString(1) + " " + doc);
+                if (rs.getInt(4) > 0) { r.put("creada", false); return r; }
+                email = rs.getString(3) != null ? rs.getString(3).toLowerCase() : null;
+                if (email == null) email = rs.getString(1).toLowerCase() + doc + "@portal.mmabogados.pe";
+            }
+        }
+        try (PreparedStatement ps = cn.prepareStatement("SELECT COUNT(*) FROM dbo.usuario WHERE email = ?")) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) { rs.next(); if (rs.getInt(1) > 0) email = "cliente" + idPersona + "@portal.mmabogados.pe"; }
+        }
+        try (PreparedStatement ps = cn.prepareStatement("INSERT INTO dbo.usuario (id_persona, email, contrasena_hash, activo) VALUES (?, ?, ?, 1)")) {
+            ps.setInt(1, idPersona); ps.setString(2, email); ps.setString(3, bcrypt.encode(doc));
+            ps.executeUpdate();
+        }
+        r.put("creada", true);
+        r.put("contrasenaInicial", "su N.° de documento");
+        return r;
+    }
+
+    /** W08 · El cliente firmó en el estudio un contrato que estaba pendiente: UPDATE CONTRATO (fecha + PRESENCIAL) + avisos. */
+    public Map<String, Object> firmaPresencial(int idContrato, Map<String, Object> d) throws SQLException {
+        LocalDate f = Datos.tiene(d, "fechaFirma") ? fecha(d, "fechaFirma") : LocalDate.now();
+        if (f.isAfter(LocalDate.now())) throw new ReglaNegocioException("La fecha de firma no puede ser futura.");
+        try (Connection cn = ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                int idCliente, idConsulta, idAbogado; String nro;
+                try (PreparedStatement ps = cn.prepareStatement("SELECT k.fecha_firma, k.nro_contrato, k.id_cliente, p.id_consulta, p.id_abogado "
+                        + "FROM dbo.contrato k WITH (UPDLOCK) JOIN dbo.propuesta p ON p.id_propuesta = k.id_propuesta WHERE k.id_contrato = ?")) {
+                    ps.setInt(1, idContrato);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) throw new ReglaNegocioException("El contrato no existe.");
+                        if (rs.getDate(1) != null) throw new ReglaNegocioException("El contrato ya está firmado.");
+                        nro = rs.getString(2); idCliente = rs.getInt(3); idConsulta = rs.getInt(4); idAbogado = rs.getInt(5);
+                    }
+                }
+                try (PreparedStatement ps = cn.prepareStatement("UPDATE dbo.contrato SET fecha_firma = ?, modalidad_firma = 'PRESENCIAL' WHERE id_contrato = ?")) {
+                    ps.setDate(1, Date.valueOf(f)); ps.setInt(2, idContrato); ps.executeUpdate();
+                }
+                pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio.avisarEquipo(cn, List.of(), idAbogado, idConsulta, null, "FIRMA_DOCUMENTO",
+                        "El contrato " + nro + " se firmó en el estudio (presencial). Ya se puede abrir el expediente.");
+                pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio.avisarCliente(cn, idCliente, idConsulta, null, "FIRMA_DOCUMENTO",
+                        "Registramos la firma presencial de su contrato " + nro + ".");
+                cn.commit();
+                return Map.of("idContrato", idContrato, "mensaje", "Contrato " + nro + " firmado en el estudio el " + f + " (PRESENCIAL).");
+            } catch (SQLException | RuntimeException e) {
+                try { cn.rollback(); } catch (SQLException ignorada) { /* ya revertida */ }
+                throw e;
             }
         }
     }
@@ -394,7 +477,14 @@ public class T2Repositorio {
                 + "FROM dbo.contrato k JOIN dbo.propuesta p ON p.id_propuesta = k.id_propuesta "
                 + "JOIN dbo.consulta c ON c.id_consulta = p.id_consulta JOIN dbo.materia m ON m.id_materia = c.id_materia "
                 + "JOIN dbo.persona pe ON pe.id_persona = k.id_cliente JOIN dbo.empleado e ON e.id_empleado = p.id_abogado "
-                + "WHERE NOT EXISTS (SELECT 1 FROM dbo.caso x WHERE x.id_contrato = k.id_contrato) ORDER BY k.id_contrato DESC");
+                + "WHERE k.fecha_firma IS NOT NULL "                                // TO-BE: solo se abre el expediente de un contrato FIRMADO
+                + "AND NOT EXISTS (SELECT 1 FROM dbo.caso x WHERE x.id_contrato = k.id_contrato) ORDER BY k.id_contrato DESC");
+    }
+
+    /** Contratos que todavía esperan la firma del cliente (no pueden abrir expediente). */
+    public List<Map<String, Object>> contratosPorFirmar() throws SQLException {
+        return consulta("SELECT k.id_contrato, k.nro_contrato, COALESCE(pe.razon_social, pe.nombres + ' ' + pe.apellidos) AS cliente "
+                + "FROM dbo.contrato k JOIN dbo.persona pe ON pe.id_persona = k.id_cliente WHERE k.fecha_firma IS NULL ORDER BY k.id_contrato DESC");
     }
 
     /** Contrapartes que el cliente mencionó en su consulta (pasan al caso como CONTRAPARTE). */

@@ -152,13 +152,14 @@ $("form-contrato").addEventListener("submit", async (e) => {
   e.preventDefault();
   const a = $("alerta"); a.className = "alerta";
   if (!actual) { a.className = "alerta mal"; a.textContent = "Elija una propuesta aceptada."; return; }
-  if (!$("nro").value.trim() || !$("firma").value) { a.className = "alerta mal"; a.textContent = "Complete el número y la fecha de firma."; return; }
+  const digital = $("m-firma").value === "DIGITAL";
+  if (!$("nro").value.trim() || (!digital && !$("firma").value)) { a.className = "alerta mal"; a.textContent = "Complete el número y la fecha de firma."; return; }
   const proBono = Number(actual.monto_honorarios) === 0;
   if (!proBono && !pintarSuma()) { a.className = "alerta mal"; a.textContent = "La suma de las cuotas debe ser igual a los honorarios aceptados."; return; }
 
   const datos = {
     idPropuesta: actual.id_propuesta, idCliente: Number($("cliente").value), nroContrato: $("nro").value.trim(),
-    fechaFirma: $("firma").value, tipoEncargo: $("tipo").value, modalidadPago: $("modalidad").value,
+    modalidadFirma: $("m-firma").value, fechaFirma: digital ? null : $("firma").value, tipoEncargo: $("tipo").value, modalidadPago: $("modalidad").value,
     conCartaPoder: $("carta").checked, cuotas: proBono ? [] : leerCuotas(),
   };
   const b = $("btn-grabar"); b.disabled = true; b.textContent = "Grabando…";
@@ -171,7 +172,10 @@ $("form-contrato").addEventListener("submit", async (e) => {
         <div><b>CONTRATO</b> id_contrato = ${r.idContrato} · nro_contrato = ${esc(r.nroContrato)} · id_propuesta = ${datos.idPropuesta} · id_cliente = ${datos.idCliente}</div>
         <div><b>CUOTA</b> ${r.idsCuota.length ? "id_cuota = " + r.idsCuota.join(", ") + " · estado PENDIENTE" : "sin cuotas (pro bono)"}</div>
         <div><b>CONSULTA</b> N.° ${r.idConsulta} → estado CONTRATADA</div>
+        <div><b>FIRMA</b> ${r.pendienteFirma ? "fecha_firma = NULL · PENDIENTE (el cliente firma en su portal)" : "modalidad_firma = PRESENCIAL"}</div>
+        <div><b>USUARIO</b> ${r.portal && r.portal.creada ? "cuenta del portal CREADA para " + esc(r.portal.usuario) : "el cliente ya tenía cuenta del portal"} · <b>NOTIFICACION</b> FIRMA_DOCUMENTO al cliente</div>
       </div>
+      ${r.portal && r.portal.creada ? `<div class="aviso amarillo">Entregue al cliente su acceso al portal: usuario <b>${esc(r.portal.usuario)}</b> · contraseña inicial: <b>${esc(r.portal.contrasenaInicial)}</b> · dirección <b>${location.origin}/portal/index.html</b></div>` : ""}
       ${r.cuotas.length ? `<table class="tabla mini" style="margin-top:6px"><thead><tr><th>id_cuota</th><th>N.°</th><th>Concepto</th><th>Monto</th><th>Vence</th><th>Estado</th></tr></thead><tbody>
         ${r.cuotas.map((q) => `<tr><td>${q.id_cuota}</td><td>${q.nro_cuota}</td><td>${esc(q.concepto)}</td><td>${soles(q.monto)}</td><td>${esc(q.fecha_vencimiento)}</td><td>${estado(q.estado)}</td></tr>`).join("")}
         </tbody></table><div class="bd">leído de la vista vw_cuota_estado (VENCIDA se calcula, no se guarda)</div>` : ""}`;
@@ -188,10 +192,22 @@ async function cargarContratos() {
   const t = $("contratos");
   try {
     const filas = await api("../api/panel/t2/contratos");
-    t.innerHTML = filas.length ? filas.map((k) => `<tr><td><b>${k.id_contrato}</b></td><td>${esc(k.nro_contrato)}</td><td>${esc(k.fecha_firma)}</td>
+    t.innerHTML = filas.length ? filas.map((k) => `<tr><td><b>${k.id_contrato}</b></td><td>${esc(k.nro_contrato)}</td>
+      <td>${k.fecha_firma ? `${esc(k.fecha_firma)}<br><small>${esc(k.modalidad_firma || "")}</small>` : '<span class="estado e-PENDIENTE">PENDIENTE DE FIRMA</span>'}</td>
       <td>${esc(k.cliente)}</td><td>${esc(k.tipo_encargo)}</td><td>${esc(k.modalidad_pago)}</td><td>${k.nro_cuotas}</td><td>${soles(k.total_cuotas)}</td>
-      <td>N.° ${k.id_consulta} ${estado(k.estado_consulta)}</td></tr>`).join("") : '<tr><td colspan="9" class="vacio">Sin contratos.</td></tr>';
-  } catch (e) { t.innerHTML = `<tr><td colspan="9" class="vacio" style="color:var(--rojo)">${esc(e.message)}</td></tr>`; }
+      <td>N.° ${k.id_consulta} ${estado(k.estado_consulta)}</td>
+      <td>${k.fecha_firma ? "" : `<button class="btn btn-sec btn-mini" type="button" data-presencial="${k.id_contrato}" title="El cliente vino al estudio y firmó en papel">Firmó en el estudio</button>`}</td></tr>`).join("")
+      : '<tr><td colspan="10" class="vacio">Sin contratos.</td></tr>';
+    t.querySelectorAll("[data-presencial]").forEach((b) => b.addEventListener("click", async () => {
+      if (!b.dataset.ok) { b.dataset.ok = "1"; b.textContent = "¿Confirmar firma de hoy?"; b.classList.add("btn-oro"); return; }
+      b.disabled = true;
+      try {
+        const r = await api(`../api/panel/t2/contratos/${b.dataset.presencial}/firma-presencial`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fechaFirma: hoy() }) });
+        $("resultado").innerHTML = `<div class="aviso verde">✔ ${esc(r.mensaje)}</div>`;
+        cargarContratos();
+      } catch (err) { alert(err.message); b.disabled = false; }
+    }));
+  } catch (e) { t.innerHTML = `<tr><td colspan="10" class="vacio" style="color:var(--rojo)">${esc(e.message)}</td></tr>`; }
 }
 
 // ---------------- Eventos e inicio
@@ -206,6 +222,10 @@ $("agregar").addEventListener("click", () => {
 });
 $("firma").value = hoy();
 $("firma").max = hoy();
+$("m-firma").addEventListener("change", () => {
+  const presencial = $("m-firma").value === "PRESENCIAL";
+  $("fila-fecha-firma").hidden = !presencial; $("aviso-digital").hidden = presencial;
+});
 $("g-inicio").value = hoy();
 
 cargarPorResponder();

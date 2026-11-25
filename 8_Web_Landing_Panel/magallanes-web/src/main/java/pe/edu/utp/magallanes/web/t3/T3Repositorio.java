@@ -52,6 +52,14 @@ public class T3Repositorio {
                 + "WHERE c.estado = 'ACTIVO' ORDER BY c.id_caso DESC");
     }
 
+    public List<Map<String, Object>> casosTodos() throws SQLException {
+        return q("SELECT c.id_caso, c.codigo_interno, c.estado, m.nombre AS materia, "
+                + "COALESCE(pe.razon_social, pe.nombres + ' ' + pe.apellidos) AS cliente "
+                + "FROM dbo.caso c JOIN dbo.materia m ON m.id_materia = c.id_materia "
+                + "JOIN dbo.contrato k ON k.id_contrato = c.id_contrato JOIN dbo.persona pe ON pe.id_persona = k.id_cliente "
+                + "ORDER BY CASE c.estado WHEN 'ACTIVO' THEN 0 ELSE 1 END, c.id_caso DESC");
+    }
+
     public List<Map<String, Object>> jurisprudenciaDelCaso(int idCaso) throws SQLException {
         return q("SELECT j.id_jurisprudencia, j.tipo, j.referencia, j.titulo FROM dbo.jurisprudencia j "
                 + "JOIN dbo.caso c ON c.id_materia = j.id_materia WHERE c.id_caso = ? ORDER BY j.tipo, j.referencia", idCaso);

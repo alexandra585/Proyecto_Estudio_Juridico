@@ -58,6 +58,9 @@ Abrir cada archivo y ejecutarlo con **F5**, en este orden:
 | 3 | `1_SQL_Server/magallanes_montero_vistas_dashboard.sql` | Nada |
 | 4 | `1_SQL_Server/magallanes_montero_dashboard_filtros.sql` | Nada (funciones del filtro por periodo del dashboard) |
 | 5 | `8_Web_Landing_Panel/magallanes-web/sql/01_preparar_base_para_la_web.sql` | Nada (crea el usuario `app_magallanes` y las contraseñas de prueba) |
+| 6 | `1_SQL_Server/magallanes_montero_validaciones.sql` | Nada (reglas de DNI, celular, nombres…) |
+| 7 | `8_Web_Landing_Panel/magallanes-web/sql/05_roles_contrasenas_de_prueba.sql` | Nada (contraseñas de prueba por rol) |
+| 8 | `1_SQL_Server/magallanes_montero_portal_firma.sql` | Nada (contrato pendiente de firma + cuentas del portal del cliente) |
 
 > El reemplazo hace falta porque los scripts 1 y 2 crean la base como `magallanes_montero`, y la aplicación usa `magallanes_montero_prueba36`.
 
@@ -106,6 +109,18 @@ El rol sale de `empleado.cargo` (sin tabla nueva): cada rol ve su menú y el ser
 | `hector.magallanes@mmabogados.pe` | `Abogado2026!` | ABOGADO | Dashboard, consultas, propuestas, expediente nuevo, escritos y resoluciones |
 | `karen.paredes@mmabogados.pe` | `Secretaria2026!` | SECRETARIA | Consultas y citas, contratos y cuotas, cobranza, cierre y encuestas |
 | `miguel.rojas@mmabogados.pe` | `Practicante2026!` | PRACTICANTE | Consultas, escritos y resoluciones |
+
+**Portal del cliente** (`http://localhost:8080/portal/index.html`, pensado para el celular): el cliente entra con su **DNI/RUC** (o correo)
+y ve su caso (etapas, audiencias, línea de tiempo, documentos), sus cuotas, firma su contrato y responde la encuesta.
+Cuentas de prueba (contraseña `Cliente2026!`, script 8):
+
+| Cliente | Entra con | Para mostrar |
+|---|---|---|
+| María Elena Torres | DNI `40987123` | Contrato **pendiente de firma** (firma digital en el celular) + caso laboral en apelación |
+| Juan Carlos Pérez | DNI `45123678` | Caso concluido y encuesta respondida |
+| Rosa Marina Huamán | DNI `43215678` | Caso de alimentos en trámite, audiencia y cuota por vencer |
+
+Un cliente nuevo recibe su cuenta al registrar su contrato (W08): usuario = su N.° de documento, contraseña inicial = ese mismo número.
 
 Para detener la aplicación: **Ctrl+C** en la terminal. Si se cambia código Java, volver a ejecutar `mvn spring-boot:run`;
 si se cambia HTML/CSS/JS, recargar el navegador con **Ctrl+F5**.

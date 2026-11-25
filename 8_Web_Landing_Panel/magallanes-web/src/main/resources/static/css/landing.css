@@ -27,6 +27,9 @@ body.landing { font-family: "Inter", "Segoe UI", Arial, sans-serif; color: #1E24
 .landing .menu a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -6px; height: 2px; background: var(--gold); transition: right .2s; }
 .landing .menu a:hover::after { right: 0; }
 .btn-cab { padding: 11px 18px; }
+.btn-portal { color: #fff; border: 1.5px solid rgba(255,255,255,.35); border-radius: 8px; padding: 9px 14px; font-weight: 700; font-size: 13.5px; white-space: nowrap; }
+.btn-portal:hover { border-color: var(--gold); color: var(--gold-claro); }
+.menu .menu-portal { display: none; }
 .hamb-l { display: none; background: none; border: 1px solid rgba(255,255,255,.3); color: #fff; border-radius: 8px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
 
 /* ---- Hero */
@@ -157,6 +160,7 @@ body.landing { font-family: "Inter", "Segoe UI", Arial, sans-serif; color: #1E24
 }
 @media (max-width: 900px) {
   .hamb-l { display: block; } .btn-cab { display: none; }
+  .btn-portal { padding: 8px 10px; font-size: 12.5px; } .menu .menu-portal { display: block; color: var(--gold-claro); font-weight: 700; }
   body.nav-abierta .menu { display: flex; position: absolute; top: 72px; left: 0; right: 0; flex-direction: column; background: #14254A; padding: 16px 24px; gap: 14px; }
   .topbar .contenedor { justify-content: center; gap: 14px; }
 }
@@ -170,3 +174,4 @@ body.landing { font-family: "Inter", "Segoe UI", Arial, sans-serif; color: #1E24
 .pista { display: block; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
 .campo.ok input { border-color: #43A047; }
 .campo.error .pista { display: none; }
+@media (max-width: 420px) { .btn-portal { display: none; } }

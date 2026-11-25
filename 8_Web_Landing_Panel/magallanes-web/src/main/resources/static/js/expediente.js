@@ -11,6 +11,10 @@ async function cargarContratos() {
       <td>${esc(k.abogado)}</td><td>${esc(k.tipo_encargo)}</td></tr>`).join("")
       : '<tr><td colspan="7" class="vacio">Todos los contratos ya tienen expediente. Registre un contrato en «Contratos y cuotas».</td></tr>';
     document.querySelectorAll("#contratos tr[data-id]").forEach((tr) => tr.addEventListener("click", () => elegir(Number(tr.dataset.id))));
+    // TO-BE: el expediente se abre solo con el contrato FIRMADO (digital en el portal o presencial)
+    const pend = await api("../api/panel/t2/contratos-por-firmar").catch(() => []);
+    $("por-firmar").innerHTML = pend.length ? `<div class="aviso amarillo">Esperando la firma del cliente (no se puede abrir su expediente todavía): ${pend.map((k) =>
+      `<b>${esc(k.nro_contrato)}</b> · ${esc(k.cliente)}`).join(" — ")} <span class="bd">contrato.fecha_firma IS NULL</span></div>` : "";
   } catch (e) { $("contratos").innerHTML = `<tr><td colspan="7" class="vacio" style="color:var(--rojo)">${esc(e.message)}</td></tr>`; }
 }
 

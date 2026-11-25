@@ -258,3 +258,18 @@ body.panel { background: #F3F5F9; font-family: "Inter", "Segoe UI", Arial, sans-
 .sugerencias button { border: 1px solid #DCE2EC; background: #F7F9FC; color: var(--navy-2); border-radius: 14px; padding: 3px 9px; font: 500 11.5px "Inter", "Segoe UI", sans-serif; cursor: pointer; }
 .sugerencias button:hover { border-color: var(--gold); background: #FBF6EA; }
 input::placeholder, textarea::placeholder { color: #9AA4B5; }
+
+/* ---------------- Campana de avisos (barra superior) ---------------- */
+.campana-zona { position: relative; }
+.campana { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; border: 1px solid #DCE2EC; background: #fff; color: var(--navy); cursor: pointer; }
+.campana:hover { border-color: var(--gold); }
+.campana .ico { width: 19px; height: 19px; }
+.campana-n { position: absolute; top: -6px; right: -6px; min-width: 19px; height: 19px; border-radius: 10px; background: var(--rojo); color: #fff; font: 800 11px/19px inherit; text-align: center; padding: 0 5px; }
+.avisos-panel { position: absolute; right: 0; top: 46px; width: min(380px, calc(100vw - 24px)); max-height: 70vh; overflow-y: auto; background: #fff; border: 1px solid var(--linea);
+  border-radius: 14px; box-shadow: 0 18px 40px rgba(16,24,40,.18); z-index: 60; }
+.avisos-cab { position: sticky; top: 0; background: #fff; padding: 12px 14px; border-bottom: 1px solid var(--linea); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.aviso-it { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #F0F2F6; font-size: 13px; }
+.aviso-it b { display: block; font-weight: 600; color: var(--texto); line-height: 1.35; } .aviso-it small { color: var(--muted); font-size: 11.5px; }
+.aviso-it.nuevo { background: #FFFBEF; } .aviso-it.nuevo b { font-weight: 800; }
+.aviso-it.urgente { background: #FFF5F5; } .aviso-it.urgente b { color: var(--rojo); }
+@media (max-width: 560px) { .avisos-panel { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; } }

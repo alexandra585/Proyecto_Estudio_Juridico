@@ -28,7 +28,7 @@ public final class Roles {
         r("(mongo/|inicio)", "Inicio", ADM, ABO, SEC, PRA),
         r("dashboard", "W03 · Dashboard", ADM, ABO),
         r("t2/(propuestas$|consultas-para-propuesta)", "W07 · Propuestas", ADM, ABO),
-        r("t2/(propuestas-por-responder|propuestas/\\d+/aceptar|propuestas-aceptadas|clientes|siguiente-nro-contrato|contratos$|contratos/\\d+/cuotas)",
+        r("t2/(propuestas-por-responder|propuestas/\\d+/aceptar|propuestas-aceptadas|clientes|siguiente-nro-contrato|contratos$|contratos/\\d+/(cuotas|firma-presencial))",
                 "W08 · Contratos y cuotas", ADM, SEC),
         r("t2/casos/\\d+/expediente-mongo", "Expediente digital", ADM, ABO, SEC, PRA),
         r("t2/", "W09 · Expediente nuevo", ADM, ABO),

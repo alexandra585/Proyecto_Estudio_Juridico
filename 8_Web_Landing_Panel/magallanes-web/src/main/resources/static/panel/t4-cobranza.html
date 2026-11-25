@@ -21,7 +21,7 @@
     <div class="pestanas"><button type="button" data-p="w18" class="activo"><span class="solo-tec">W18 · </span>Emitir comprobante</button>
       <button type="button" data-p="w19"><span class="solo-tec">W19 · </span>Registrar pago</button>
       <button type="button" data-p="w21"><span class="solo-tec">W21 · </span>Cerrar caso</button>
-      <button type="button" data-p="w22"><span class="solo-tec">W22 · </span>Encuesta</button>
+      <button type="button" data-p="w22"><span class="solo-tec">W22 · </span>Encuestas enviadas</button>
       <button type="button" data-p="w22r">Resultados de encuestas</button></div>
 
     <!-- W18 -->
@@ -76,23 +76,15 @@
       <div id="r21"></div>
     </form>
 
-    <!-- W22 -->
-    <form class="tarjeta" id="w22" novalidate hidden style="margin-top:0;border-top-left-radius:0">
-      <div class="dos-col">
+    <!-- W22 · La encuesta la responde EL CLIENTE en su portal (TO-BE). Aquí solo se hace el seguimiento. -->
+    <section class="tarjeta" id="w22" hidden style="margin-top:0;border-top-left-radius:0">
+      <div class="aviso amarillo" style="margin-top:0">La encuesta la responde <b>el cliente en su portal</b> (se envía sola al cerrar el caso). Aquí se ve qué encuestas siguen esperando respuesta y las últimas recibidas.
+        <span class="bd">encuesta.fecha_envio (W21) → el cliente responde en /portal → encuesta.fecha_respuesta + MongoDB encuestas</span></div>
+      <div class="grid-2" style="margin-top:4px">
         <div>
-          <div class="campo"><label for="s-enc">Encuesta pendiente *</label><select id="s-enc"></select><span class="bd">encuesta (fecha_respuesta NULL)</span></div>
-          <div id="s-preguntas" style="margin-top:12px"></div>
-          <div class="campo" style="margin-top:12px"><label for="s-com">Comentario</label><textarea id="s-com" maxlength="500" style="min-height:70px"></textarea><span class="bd">encuesta.comentario + encuestas.comentario</span></div>
-          <div class="permiso-pub">
-            <label class="check" style="margin:0"><input type="checkbox" id="s-pub"> <b>El cliente autoriza publicar su comentario en la página web</b></label>
-            <div class="radios" id="s-firma">
-              <label><input type="radio" name="firma" value="NOMBRE"> Nombre e inicial (Carmen V.)</label>
-              <label><input type="radio" name="firma" value="INICIALES" checked> Solo iniciales (C. V.)</label>
-              <label><input type="radio" name="firma" value="ANONIMO"> Anónimo</label>
-            </div>
-            <span class="bd">solo MongoDB · encuestas.publicacion { autoriza, firma, nombre_publico, materia } — campo nuevo SIN ALTER TABLE</span>
-          </div>
-          <p class="origen" id="s-origen"></p>
+          <h2>Esperando respuesta del cliente</h2>
+          <div style="overflow-x:auto"><table class="tabla mini"><thead><tr><th>N.°</th><th>Caso</th><th>Cliente</th><th>Enviada</th></tr></thead><tbody id="t-enc-pend"></tbody></table></div>
+          <div class="bd">encuesta (fecha_respuesta IS NULL)</div>
         </div>
         <div>
           <h2>Últimas respuestas</h2>
@@ -100,11 +92,8 @@
           <div class="bd">SQL Server guarda solo calificación y NPS (para el dashboard); MongoDB guarda TODAS las respuestas</div>
         </div>
       </div>
-      <div class="alerta" id="a22"></div>
-      <div class="acciones"><button class="btn btn-oro" type="submit" id="b22">Guardar respuesta</button>
-        <span class="bd">UPDATE encuesta (calificacion 1-5, nps 0-10) → MongoDB encuestas (respuestas completas, RESPONDIDA) · COMMIT</span></div>
-      <div id="r22"></div>
-    </form>
+      <p class="origen" id="s-origen"></p>
+    </section>
 
     <!-- Resultados de las encuestas -->
     <section class="tarjeta" id="w22r" hidden style="margin-top:0">
