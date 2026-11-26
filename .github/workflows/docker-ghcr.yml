@@ -1,0 +1,35 @@
+# Construye la imagen Docker de la web y la publica en GitHub Packages (ghcr.io).
+# Azure Container Apps descarga esa imagen. Se ejecuta en cada push a main que cambie la web.
+name: Imagen Docker (Azure Container Apps)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '8_Web_Landing_Panel/magallanes-web/**'
+      - '.github/workflows/docker-ghcr.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: 8_Web_Landing_Panel/magallanes-web
+          push: true
+          tags: |
+            ghcr.io/alexandra585/magallanes-web:latest
+            ghcr.io/alexandra585/magallanes-web:${{ github.sha }}
