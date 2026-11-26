@@ -622,8 +622,19 @@ public class T2Repositorio {
                 }
 
                 cn.commit();                                           // COMMIT
+
+                // 5) Aviso al cliente en su portal (complementario: si falla, el expediente ya quedó grabado)
+                boolean avisado = false;
+                try {
+                    pe.edu.utp.magallanes.web.expediente.NotificacionRepositorio.avisarCliente(cn, idCliente, null, idCaso, "APERTURA_EXPEDIENTE",
+                            "Se abrió su expediente " + codigo + " (" + materia + "). Puede seguir sus etapas, audiencias y documentos en su portal.");
+                    cn.commit(); avisado = true;
+                } catch (SQLException sinAviso) {
+                    try { cn.rollback(); } catch (SQLException ignorada) { /* nada que deshacer */ }
+                }
                 Map<String, Object> r = new LinkedHashMap<>();
                 r.put("idCaso", idCaso);
+                r.put("avisoCliente", avisado);
                 r.put("codigoInterno", codigo);
                 r.put("partes", partes);
                 r.put("expedienteMongoId", idMongo);

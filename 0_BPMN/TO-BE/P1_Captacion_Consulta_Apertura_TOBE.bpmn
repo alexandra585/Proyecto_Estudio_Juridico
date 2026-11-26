@@ -124,7 +124,7 @@
     <bpmn:endEvent id="e_arch" name="Prospecto archivado"><bpmn:incoming>F_t_arch_e_arch</bpmn:incoming></bpmn:endEvent>
     <bpmn:userTask id="t_ver" name="Ajustar propuesta (nueva versión)"><bpmn:incoming>F_m_contra_t_ver</bpmn:incoming><bpmn:outgoing>F_t_ver_j_p</bpmn:outgoing></bpmn:userTask>
     <bpmn:serviceTask id="t_contr" name="Generar contrato y cronograma de cuotas"><bpmn:incoming>F_m_acep_t_contr</bpmn:incoming><bpmn:outgoing>F_t_contr_t_envc</bpmn:outgoing></bpmn:serviceTask>
-    <bpmn:sendTask id="t_envc" name="Enviar contrato para firma"><bpmn:incoming>F_t_contr_t_envc</bpmn:incoming><bpmn:outgoing>F_t_envc_g_firma</bpmn:outgoing></bpmn:sendTask>
+    <bpmn:sendTask id="t_envc" name="Enviar contrato al portal y crear acceso del cliente"><bpmn:incoming>F_t_contr_t_envc</bpmn:incoming><bpmn:outgoing>F_t_envc_g_firma</bpmn:outgoing></bpmn:sendTask>
     <bpmn:exclusiveGateway id="g_firma" name="¿Modo de firma?"><bpmn:incoming>F_t_envc_g_firma</bpmn:incoming><bpmn:outgoing>F_g_firma_t_fdig</bpmn:outgoing><bpmn:outgoing>F_g_firma_t_fpre</bpmn:outgoing></bpmn:exclusiveGateway>
     <bpmn:receiveTask id="t_fdig" name="Recibir contrato firmado digitalmente"><bpmn:incoming>F_g_firma_t_fdig</bpmn:incoming><bpmn:outgoing>F_t_fdig_j_firma</bpmn:outgoing></bpmn:receiveTask>
     <bpmn:manualTask id="t_fpre" name="Firmar en oficina y escanear al expediente"><bpmn:incoming>F_g_firma_t_fpre</bpmn:incoming><bpmn:outgoing>F_t_fpre_j_firma</bpmn:outgoing></bpmn:manualTask>
@@ -134,7 +134,7 @@
     <bpmn:userTask id="t_rol" name="Registrar partes, rol procesal y materia"><bpmn:incoming>F_t_ficha_t_rol</bpmn:incoming><bpmn:outgoing>F_t_rol_t_caso</bpmn:outgoing></bpmn:userTask>
     <bpmn:serviceTask id="t_caso" name="Abrir caso y crear expediente digital"><bpmn:incoming>F_t_rol_t_caso</bpmn:incoming><bpmn:outgoing>F_t_caso_t_asig</bpmn:outgoing></bpmn:serviceTask>
     <bpmn:serviceTask id="t_asig" name="Asignar especialista y notificar al equipo"><bpmn:incoming>F_t_caso_t_asig</bpmn:incoming><bpmn:outgoing>F_t_asig_t_port</bpmn:outgoing></bpmn:serviceTask>
-    <bpmn:sendTask id="t_port" name="Crear y enviar acceso al portal del cliente"><bpmn:incoming>F_t_asig_t_port</bpmn:incoming><bpmn:outgoing>F_t_port_e_ok</bpmn:outgoing></bpmn:sendTask>
+    <bpmn:sendTask id="t_port" name="Avisar al cliente la apertura del expediente en su portal"><bpmn:incoming>F_t_asig_t_port</bpmn:incoming><bpmn:outgoing>F_t_port_e_ok</bpmn:outgoing></bpmn:sendTask>
     <bpmn:endEvent id="e_ok" name="Caso aperturado (pasa a P2)"><bpmn:incoming>F_t_port_e_ok</bpmn:incoming></bpmn:endEvent>
     <bpmn:sequenceFlow id="F_st_web_j0" sourceRef="st_web" targetRef="j0"/>
     <bpmn:sequenceFlow id="F_st_wsp_t_regp" sourceRef="st_wsp" targetRef="t_regp"/>
@@ -231,6 +231,8 @@
     <bpmn:textAnnotation id="n4"><bpmn:text>Natural: boleta. Jurídica o entidad pública: factura.</bpmn:text></bpmn:textAnnotation>
     <bpmn:association id="As_n4" sourceRef="t_comp" targetRef="n4"/>
     <bpmn:textAnnotation id="n5"><bpmn:text>Natural: DNI. Jurídica: RUC y vigencia de poder. Pública: RUC y orden de servicio.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="n6"><bpmn:text>Pendiente de firma: CONTRATO.fecha_firma = NULL. Al firmar se graba la fecha y modalidad_firma (DIGITAL o PRESENCIAL).</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="As_n6" sourceRef="t_fdig" targetRef="n6"/>
     <bpmn:association id="As_n5" sourceRef="t_ficha" targetRef="n5"/>
   </bpmn:process>
   <bpmn:process id="Proc_CL" name="Cliente" isExecutable="false"><bpmn:laneSet id="LS_CL"><bpmn:lane id="Lane_CL" name=""/></bpmn:laneSet></bpmn:process>
@@ -253,7 +255,7 @@
     <bpmn:messageFlow id="M_14_T1" name="Contraoferta" sourceRef="CL" targetRef="m_contra"/>
     <bpmn:messageFlow id="M_15_T1" name="Rechazo" sourceRef="CL" targetRef="m_rech"/>
     <bpmn:messageFlow id="M_16_T1" name="Recordatorio de propuesta" sourceRef="t_segu" targetRef="CL"/>
-    <bpmn:messageFlow id="M_17_T1" name="Contrato para firma" sourceRef="t_envc" targetRef="CL"/>
+    <bpmn:messageFlow id="M_17_T1" name="Contrato y acceso al portal" sourceRef="t_envc" targetRef="CL"/>
     <bpmn:messageFlow id="M_18_T1" name="Firma digital" sourceRef="CL" targetRef="t_fdig"/>
     <bpmn:messageFlow id="M_19_T1" name="Pago de adelanto" sourceRef="CL" targetRef="t_adel"/>
     <bpmn:messageFlow id="M_20_T1" name="Usuario y contraseña del portal" sourceRef="t_port" targetRef="CL"/>
@@ -347,6 +349,7 @@
       <bpmndi:BPMNShape id="n2_di" bpmnElement="n2"><dc:Bounds x="1410" y="142" width="200" height="55"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="n3_di" bpmnElement="n3"><dc:Bounds x="2475" y="682" width="190" height="55"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="n4_di" bpmnElement="n4"><dc:Bounds x="4017" y="142" width="170" height="55"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="n6_di" bpmnElement="n6"><dc:Bounds x="6033" y="444" width="200" height="70"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="n5_di" bpmnElement="n5"><dc:Bounds x="6523" y="682" width="190" height="55"/></bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="F_st_web_j0_di" bpmnElement="F_st_web_j0"><di:waypoint x="333" y="262"/><di:waypoint x="455" y="262"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="F_st_wsp_t_regp_di" bpmnElement="F_st_wsp_t_regp"><di:waypoint x="168" y="802"/><di:waypoint x="255" y="802"/></bpmndi:BPMNEdge>
@@ -449,6 +452,7 @@
       <bpmndi:BPMNEdge id="As_n2_di" bpmnElement="As_n2"><di:waypoint x="1482" y="226"/><di:waypoint x="1510" y="196"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="As_n3_di" bpmnElement="As_n3"><di:waypoint x="2460" y="766"/><di:waypoint x="2570" y="736"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="As_n4_di" bpmnElement="As_n4"><di:waypoint x="4242" y="226"/><di:waypoint x="4102" y="196"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="As_n6_di" bpmnElement="As_n6"><di:waypoint x="6123" y="414"/><di:waypoint x="6123" y="444"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="As_n5_di" bpmnElement="As_n5"><di:waypoint x="6618" y="766"/><di:waypoint x="6618" y="736"/></bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

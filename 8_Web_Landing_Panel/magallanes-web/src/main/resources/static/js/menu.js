@@ -118,7 +118,7 @@
     document.dispatchEvent(new CustomEvent("usuario-listo", { detail: u }));
   });
   // ---- Campana de avisos (lo «leído» se recuerda en este navegador: no se guarda en la base)
-  const ICONO_AVISO = { FIRMA_DOCUMENTO: "✍", CONFIRMACION_CONSULTA: "📩", ALERTA_PLAZO: "⏰", AVISO_AUDIENCIA: "🗓", RECORDATORIO_CUOTA: "💳",
+  const ICONO_AVISO = { APERTURA_EXPEDIENTE: "📂", FIRMA_DOCUMENTO: "✍", CONFIRMACION_CONSULTA: "📩", ALERTA_PLAZO: "⏰", AVISO_AUDIENCIA: "🗓", RECORDATORIO_CUOTA: "💳",
     CONSTANCIA_PAGO: "✅", ENVIO_ENCUESTA: "★", RECORDATORIO_CITA: "📅" };
   const leer = () => { try { return localStorage.getItem("mm-avisos-visto") || ""; } catch (e) { return ""; } };
   const hace = (iso) => { const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);

@@ -677,7 +677,7 @@ CREATE TABLE dbo.notificacion (  -- Crea la tabla notificacion.
   CONSTRAINT pk_notificacion PRIMARY KEY (id_notificacion),  -- Llave primaria.
   CONSTRAINT ck_notificacion_destinatario CHECK ((id_persona IS NOT NULL AND id_empleado IS NULL) OR (id_persona IS NULL AND id_empleado IS NOT NULL)),  -- Regla: un solo destinatario (cliente O empleado).
   CONSTRAINT ck_notificacion_origen CHECK (id_consulta IS NOT NULL OR id_caso IS NOT NULL),  -- Regla: toda notificación nace de una consulta o de un caso.
-  CONSTRAINT ck_notificacion_tipo_evento CHECK (tipo_evento IN ('CONFIRMACION_CONSULTA', 'RECORDATORIO_CITA', 'ALERTA_PLAZO', 'AVISO_AUDIENCIA', 'RECORDATORIO_CUOTA', 'CONSTANCIA_PAGO', 'ENVIO_ENCUESTA', 'FIRMA_DOCUMENTO')),  -- Lista cerrada de eventos.
+  CONSTRAINT ck_notificacion_tipo_evento CHECK (tipo_evento IN ('CONFIRMACION_CONSULTA', 'RECORDATORIO_CITA', 'ALERTA_PLAZO', 'AVISO_AUDIENCIA', 'RECORDATORIO_CUOTA', 'CONSTANCIA_PAGO', 'ENVIO_ENCUESTA', 'FIRMA_DOCUMENTO', 'APERTURA_EXPEDIENTE')),  -- Lista cerrada de eventos.
   CONSTRAINT ck_notificacion_canal CHECK (canal IN ('WHATSAPP', 'CORREO', 'SISTEMA')),  -- Lista cerrada de canales.
   CONSTRAINT ck_notificacion_estado CHECK (estado IN ('PENDIENTE', 'ENVIADA', 'FALLIDA')),  -- Lista cerrada de estados.
   CONSTRAINT ck_notificacion_envio CHECK ((estado = 'ENVIADA' AND fecha_envio IS NOT NULL) OR (estado <> 'ENVIADA' AND fecha_envio IS NULL)),  -- Regla: solo una enviada tiene fecha de envío.

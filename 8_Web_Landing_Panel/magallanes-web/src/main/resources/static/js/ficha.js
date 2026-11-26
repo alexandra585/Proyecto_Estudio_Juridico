@@ -19,7 +19,7 @@
   window.renderFicha = function (el, d, opc = {}) {
     const cli = !!opc.cliente, c = d.caso;
     const visibles = d.etapas.filter((x) => x.estado !== "PENDIENTE" || x.orden > Math.max(0, ...d.etapas.filter((y) => y.estado !== "PENDIENTE").map((y) => y.orden)));
-    const hechas = d.etapas.filter((x) => x.estado === "HECHA" || x.estado === "ACTUAL").length;
+    const hechas = d.etapas.filter((x) => ["HECHA", "ACTUAL", "PREVIA", "OMITIDA"].includes(x.estado)).length;
     const actual = d.etapas.find((x) => x.estado === "ACTUAL");
     const proxAud = d.audiencias.filter((a) => a.proxima).sort((a, b) => a.dias - b.dias);
     const plazosAbiertos = d.plazos.filter((p) => cli ? p.estado === "PENDIENTE" : p.estado !== "CUMPLIDO");   // el cliente ve solo las próximas fechas
@@ -36,7 +36,7 @@
     </div>
 
     <div class="fx-etapas" aria-label="Etapas del proceso">
-      ${visibles.map((x) => `<div class="fx-etapa ${x.estado.toLowerCase()}" title="${e(x.nombre)}${x.inicio ? " · desde " + e(x.inicio) : ""}">
+      ${visibles.map((x) => `<div class="fx-etapa ${x.estado.toLowerCase()}" title="${e(x.nombre)}${x.estado === "PREVIA" ? " · antes de que el estudio tomara el caso" : x.estado === "OMITIDA" ? " · no se realizó en este caso" : x.inicio ? " · desde " + e(x.inicio) : ""}">
         <span class="fx-pto">${x.estado === "HECHA" ? "✓" : x.estado === "OMITIDA" ? "–" : x.orden}</span><span class="fx-enom">${e(x.nombre)}</span>
         ${x.inicio ? `<small>${e(x.inicio)}</small>` : ""}</div>`).join("")}
     </div>

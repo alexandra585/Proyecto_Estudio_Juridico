@@ -70,3 +70,12 @@
 - `4_Informe/Informe_Tecnico_MongoDB_Conexiones_Estructura.docx` (y PDF): por qué MongoDB, conexiones, `.env`, estructura del código y roles.
 - `4_Informe/Informe_General_Proyecto_Magallanes_Montero.docx` (y PDF): resumen de todo el proyecto.
 - `7_Figma/v2_web/`: capturas de las pantallas nuevas (landing, inicio por rol, resultados de encuestas, módulos).
+
+## 26/11/2026 · Ajustes finales v38
+- Ficha del expediente: «Consulta inicial» se muestra como HECHA (con la fecha de la consulta); las etapas anteriores a la apertura salen como PREVIA (gris, sin tachar).
+- W09: al abrir el expediente el cliente recibe en su portal el aviso APERTURA_EXPEDIENTE (NOTIFICACION). El CHECK `ck_notificacion_tipo_evento` suma ese evento (`magallanes_montero_portal_firma.sql`, paso 4b). Siguen siendo 36 tablas.
+- BPMN TO-BE P1 y P3 alineados con el sistema (acceso al portal al enviar el contrato, aviso de apertura, encuesta en el portal, nota de firma pendiente).
+- `0_BPMN/Matriz_Bizagi_Pantallas_Tablas.docx/.pdf`: cada tarea TO-BE con su pantalla, tablas y estado.
+- `7_Figma/seccion10_portal_v38.svg`: tablero 10 del prototipo (portal del cliente y firma).
+- `1_SQL_Server/Demo_sustentacion_selects.sql`: consultas para mostrar en la sustentación qué se guarda.
+- Informes v38, técnico y general: mencionan el nuevo evento de NOTIFICACION.

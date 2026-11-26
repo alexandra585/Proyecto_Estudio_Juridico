@@ -23,6 +23,7 @@
 .fx-etapa.hecha .fx-pto { background: var(--gold); border-color: var(--gold); color: #fff; }
 .fx-etapa.actual .fx-pto { background: var(--navy); border-color: var(--navy); color: #fff; box-shadow: 0 0 0 5px rgba(20,37,74,.15); }
 .fx-etapa.omitida .fx-pto { background: #F4F6FA; border-style: dashed; }
+.fx-etapa.previa .fx-pto { background: #F4F6FA; color: #B3BCCB; } .fx-etapa.previa .fx-enom { color: #B3BCCB; }
 .fx-enom { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-top: 6px; line-height: 1.25; }
 .fx-etapa.actual .fx-enom { color: var(--navy); } .fx-etapa.omitida .fx-enom { color: #B3BCCB; text-decoration: line-through; }
 .fx-etapa small { display: block; font-size: 10.5px; color: #9AA6B8; }

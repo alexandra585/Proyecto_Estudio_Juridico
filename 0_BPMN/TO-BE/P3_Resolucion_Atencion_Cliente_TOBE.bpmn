@@ -128,7 +128,7 @@
     <bpmn:sendTask id="t_coord" name="Coordinar fecha de entrega"><bpmn:incoming>F_t_orig_t_coord</bpmn:incoming><bpmn:outgoing>F_t_coord_t_entr</bpmn:outgoing></bpmn:sendTask>
     <bpmn:receiveTask id="t_entr" name="Entregar documentos y registrar cargo firmado"><bpmn:incoming>F_t_coord_t_entr</bpmn:incoming><bpmn:outgoing>F_t_entr_t_cie</bpmn:outgoing></bpmn:receiveTask>
     <bpmn:serviceTask id="t_cie" name="Cerrar caso y archivar expediente digital"><bpmn:incoming>F_t_entr_t_cie</bpmn:incoming><bpmn:outgoing>F_t_cie_t_enc</bpmn:outgoing></bpmn:serviceTask>
-    <bpmn:sendTask id="t_enc" name="Enviar encuesta de satisfacción"><bpmn:incoming>F_t_cie_t_enc</bpmn:incoming><bpmn:outgoing>F_t_enc_ebg_e</bpmn:outgoing></bpmn:sendTask>
+    <bpmn:sendTask id="t_enc" name="Enviar encuesta al portal del cliente"><bpmn:incoming>F_t_cie_t_enc</bpmn:incoming><bpmn:outgoing>F_t_enc_ebg_e</bpmn:outgoing></bpmn:sendTask>
     <bpmn:eventBasedGateway id="ebg_e"><bpmn:incoming>F_t_enc_ebg_e</bpmn:incoming><bpmn:outgoing>F_ebg_e_m_enc</bpmn:outgoing><bpmn:outgoing>F_ebg_e_tm_7</bpmn:outgoing></bpmn:eventBasedGateway>
     <bpmn:intermediateCatchEvent id="m_enc" name="Cliente responde la encuesta"><bpmn:incoming>F_ebg_e_m_enc</bpmn:incoming><bpmn:outgoing>F_m_enc_t_genc</bpmn:outgoing><bpmn:messageEventDefinition id="ED_m_enc"/></bpmn:intermediateCatchEvent>
     <bpmn:intermediateCatchEvent id="tm_7" name="7 días sin respuesta"><bpmn:incoming>F_ebg_e_tm_7</bpmn:incoming><bpmn:outgoing>F_tm_7_j_e</bpmn:outgoing><bpmn:timerEventDefinition id="ED_tm_7"/></bpmn:intermediateCatchEvent>

@@ -59,7 +59,8 @@ $("form-caso").addEventListener("submit", async (e) => {
         <div><b>CASO</b> id_caso = ${r.idCaso} · ${esc(r.codigoInterno)} · ACTIVO</div>
         <div><b>CASO_PARTE</b> ${r.partes} fila(s): 1 cliente + ${r.partes - 1} contraparte(s)</div>
         <div><b>CASO_ETAPA</b> etapa inicial abierta (fecha_fin NULL)</div>
-        <div><b>MongoDB · expedientes</b> _id = ${esc(r.expedienteMongoId || "— (no disponible)")} → caso.expediente_mongo_id</div></div>
+        <div><b>MongoDB · expedientes</b> _id = ${esc(r.expedienteMongoId || "— (no disponible)")} → caso.expediente_mongo_id</div>
+        <div><b>NOTIFICACION</b> ${r.avisoCliente ? "APERTURA_EXPEDIENTE al cliente (portal)" : "sin aviso al cliente (ejecute magallanes_montero_portal_firma.sql)"}</div></div>
       ${r.expedienteMongoId ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t2/casos/${r.idCaso}/expediente-mongo')">Ver el documento guardado en MongoDB</button>` : ""}</div>`;
     actual = null;
     await Promise.all([cargarContratos(), cargarCasos()]);

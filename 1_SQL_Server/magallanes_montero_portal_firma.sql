@@ -7,6 +7,7 @@
 --   CONTRATO.fecha_firma      ahora admite NULL  → NULL = «pendiente de firma del cliente»
 --   CONTRATO.modalidad_firma  columna NUEVA      → DIGITAL (en el portal) o PRESENCIAL (en el estudio)
 --   2 reglas CHECK nuevas: modalidad válida y «fecha y modalidad van juntas».
+--   NOTIFICACION.tipo_evento  la lista del CHECK suma 'APERTURA_EXPEDIENTE' (aviso al cliente cuando se abre su caso).
 --
 -- Qué NO cambia (ya estaba en el modelo de 36 tablas):
 --   USUARIO.id_persona   → cuentas del portal del cliente
@@ -38,6 +39,17 @@ IF OBJECT_ID('dbo.ck_contrato_modalidad_firma') IS NULL
 IF OBJECT_ID('dbo.ck_contrato_firma_completa') IS NULL
     ALTER TABLE dbo.contrato WITH CHECK ADD CONSTRAINT ck_contrato_firma_completa      -- Regla: firmado = fecha + modalidad; pendiente = ambos NULL
         CHECK ((fecha_firma IS NULL AND modalidad_firma IS NULL) OR (fecha_firma IS NOT NULL AND modalidad_firma IS NOT NULL));
+GO
+
+-- 4b) Nuevo evento de notificación: APERTURA_EXPEDIENTE (W09 avisa al cliente en su portal)
+IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'ck_notificacion_tipo_evento' AND definition LIKE '%APERTURA_EXPEDIENTE%')
+BEGIN
+    IF OBJECT_ID('dbo.ck_notificacion_tipo_evento') IS NOT NULL
+        ALTER TABLE dbo.notificacion DROP CONSTRAINT ck_notificacion_tipo_evento;
+    ALTER TABLE dbo.notificacion WITH CHECK ADD CONSTRAINT ck_notificacion_tipo_evento
+        CHECK (tipo_evento IN ('CONFIRMACION_CONSULTA', 'RECORDATORIO_CITA', 'ALERTA_PLAZO', 'AVISO_AUDIENCIA', 'RECORDATORIO_CUOTA',
+                               'CONSTANCIA_PAGO', 'ENVIO_ENCUESTA', 'FIRMA_DOCUMENTO', 'APERTURA_EXPEDIENTE'));
+END
 GO
 
 -- 5) Cuentas del PORTAL DEL CLIENTE (tabla USUARIO con id_persona).

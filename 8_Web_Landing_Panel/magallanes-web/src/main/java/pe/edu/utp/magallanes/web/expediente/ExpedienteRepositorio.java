@@ -51,10 +51,25 @@ public class ExpedienteRepositorio {
                 + "     WHEN COUNT(ce.id_caso_etapa) > 0 THEN 'HECHA' ELSE 'PENDIENTE' END AS estado "
                 + "FROM dbo.etapa_procesal ep LEFT JOIN dbo.caso_etapa ce ON ce.id_etapa = ep.id_etapa AND ce.id_caso = ? "
                 + "GROUP BY ep.id_etapa, ep.orden, ep.nombre ORDER BY ep.orden", idCaso);
-        int ordenActual = 0;
-        for (Map<String, Object> e : etapas) if ("ACTUAL".equals(e.get("estado"))) ordenActual = ((Number) e.get("orden")).intValue();
-        for (Map<String, Object> e : etapas)   // etapas que el caso se saltó (p. ej. no hubo apelación)
-            if ("PENDIENTE".equals(e.get("estado")) && ((Number) e.get("orden")).intValue() < ordenActual) e.put("estado", "OMITIDA");
+        int ordenActual = 0, ordenInicio = Integer.MAX_VALUE;
+        for (Map<String, Object> e : etapas) {
+            int orden = ((Number) e.get("orden")).intValue();
+            if ("ACTUAL".equals(e.get("estado"))) ordenActual = orden;
+            if (!"PENDIENTE".equals(e.get("estado"))) ordenInicio = Math.min(ordenInicio, orden);
+        }
+        // Fecha de la consulta de origen: la «Consulta inicial» siempre ocurrió (todo caso nace de una consulta → propuesta → contrato)
+        List<Map<String, Object>> fc = q("SELECT FORMAT(co.fecha_hora_recepcion, 'dd/MM/yyyy') AS f FROM dbo.caso c "
+                + "JOIN dbo.contrato k ON k.id_contrato = c.id_contrato JOIN dbo.propuesta pr ON pr.id_propuesta = k.id_propuesta "
+                + "JOIN dbo.consulta co ON co.id_consulta = pr.id_consulta WHERE c.id_caso = ?", idCaso);
+        for (Map<String, Object> e : etapas) {
+            if (!"PENDIENTE".equals(e.get("estado"))) continue;
+            int orden = ((Number) e.get("orden")).intValue();
+            if (orden == 1) {                                   // Consulta inicial → hecha en el proceso de captación (P1)
+                e.put("estado", "HECHA");
+                if (!fc.isEmpty()) e.put("inicio", fc.get(0).get("f"));
+            } else if (orden < ordenInicio) e.put("estado", "PREVIA");     // ocurrió antes de que el estudio tomara el caso
+            else if (orden < ordenActual) e.put("estado", "OMITIDA");     // el caso se la saltó después de abrirse
+        }
         if ("CERRADO".equals(caso.get("estado")))
             for (Map<String, Object> e : etapas) if ("ACTUAL".equals(e.get("estado"))) e.put("estado", "HECHA");
         r.put("etapas", etapas);

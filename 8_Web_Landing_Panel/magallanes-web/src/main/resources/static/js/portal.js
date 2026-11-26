@@ -118,7 +118,7 @@ function pintarPagos() {
     || '<p class="p-nota">No tiene cuotas registradas (servicio pro bono o contrato sin cronograma).</p>';
 }
 
-const ICON = { FIRMA_DOCUMENTO: "✍", CONFIRMACION_CONSULTA: "📩", AVISO_AUDIENCIA: "🗓", RECORDATORIO_CUOTA: "💳", CONSTANCIA_PAGO: "✅", ENVIO_ENCUESTA: "★", RECORDATORIO_CITA: "📅" };
+const ICON = { APERTURA_EXPEDIENTE: "📂", FIRMA_DOCUMENTO: "✍", CONFIRMACION_CONSULTA: "📩", AVISO_AUDIENCIA: "🗓", RECORDATORIO_CUOTA: "💳", CONSTANCIA_PAGO: "✅", ENVIO_ENCUESTA: "★", RECORDATORIO_CITA: "📅" };
 function pintarAvisos() {
   $("avisos").innerHTML = datos.avisos.map((a) => `<div class="p-aviso"><div class="ic">${ICON[a.tipo_evento] || "•"}</div>
     <div><b>${esc(a.mensaje)}</b><small>${new Date(a.fecha).toLocaleString("es-PE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · ${esc(a.canal === "SISTEMA" ? "portal" : a.canal.toLowerCase())}</small></div></div>`).join("")
