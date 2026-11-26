@@ -258,7 +258,7 @@
     <bpmn:messageFlow id="M_17_T1" name="Contrato y acceso al portal" sourceRef="t_envc" targetRef="CL"/>
     <bpmn:messageFlow id="M_18_T1" name="Firma digital" sourceRef="CL" targetRef="t_fdig"/>
     <bpmn:messageFlow id="M_19_T1" name="Pago de adelanto" sourceRef="CL" targetRef="t_adel"/>
-    <bpmn:messageFlow id="M_20_T1" name="Usuario y contraseña del portal" sourceRef="t_port" targetRef="CL"/>
+    <bpmn:messageFlow id="M_20_T1" name="Aviso: expediente abierto" sourceRef="t_port" targetRef="CL"/>
     <bpmn:group id="Grp_T1_0" categoryValueRef="CV_T1_0"/>
     <bpmn:group id="Grp_T1_1" categoryValueRef="CV_T1_1"/>
     <bpmn:group id="Grp_T1_2" categoryValueRef="CV_T1_2"/>
