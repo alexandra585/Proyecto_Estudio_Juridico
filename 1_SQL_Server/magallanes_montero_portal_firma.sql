@@ -44,15 +44,21 @@ GO
 --    Todo cliente con contrato tiene cuenta. Contraseña de prueba: Cliente2026!  (solo se guarda el hash BCrypt)
 --    El cliente entra con su DNI/RUC o con su correo.
 DECLARE @hash VARCHAR(100) = '$2a$10$Jo4FFD3S6tBD5AkKUkIE0.T/7pU4Eu5d6m98vGJf4Wj8f.y9SkWeK';
+;WITH sin_cuenta AS (
+    SELECT p.id_persona, LOWER(p.email) AS email,
+           LOWER(p.tipo_documento) + p.nro_documento + '@portal.mmabogados.pe' AS email_generado,
+           ROW_NUMBER() OVER (PARTITION BY LOWER(p.email) ORDER BY p.id_persona) AS n   -- dos personas con el mismo correo: solo la 1.ª lo usa
+    FROM dbo.persona p
+    WHERE p.nro_documento IS NOT NULL
+      AND EXISTS (SELECT 1 FROM dbo.contrato k WHERE k.id_cliente = p.id_persona)
+      AND NOT EXISTS (SELECT 1 FROM dbo.usuario u WHERE u.id_persona = p.id_persona))
 INSERT INTO dbo.usuario (id_persona, email, contrasena_hash, activo)
-SELECT p.id_persona,
-       COALESCE(p.email, LOWER(p.tipo_documento) + p.nro_documento + '@portal.mmabogados.pe'),
+SELECT id_persona,
+       CASE WHEN email IS NOT NULL AND n = 1 AND NOT EXISTS (SELECT 1 FROM dbo.usuario u WHERE u.email = sin_cuenta.email)
+            THEN email ELSE email_generado END,
        @hash, 1
-FROM dbo.persona p
-WHERE p.nro_documento IS NOT NULL
-  AND EXISTS (SELECT 1 FROM dbo.contrato k WHERE k.id_cliente = p.id_persona)
-  AND NOT EXISTS (SELECT 1 FROM dbo.usuario u WHERE u.id_persona = p.id_persona)
-  AND NOT EXISTS (SELECT 1 FROM dbo.usuario u WHERE u.email = COALESCE(p.email, LOWER(p.tipo_documento) + p.nro_documento + '@portal.mmabogados.pe'));
+FROM sin_cuenta
+WHERE NOT EXISTS (SELECT 1 FROM dbo.usuario u WHERE u.email = sin_cuenta.email_generado);
 UPDATE dbo.usuario SET contrasena_hash = @hash, activo = 1 WHERE id_persona IS NOT NULL;
 GO
 
