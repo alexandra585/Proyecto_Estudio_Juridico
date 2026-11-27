@@ -34,11 +34,16 @@ public class MongoDocumentos {
     public boolean disponible() {
         try {
             mongo.executeCommand(new Document("ping", 1));
-            if (!preparada) prepararColecciones();
-            return true;
         } catch (RuntimeException e) {
+            System.err.println("MongoDB no responde: " + e.getMessage());
             return false;
         }
+        // Si MongoDB responde, un error al preparar el esquema no debe marcarlo como "apagado".
+        if (!preparada) {
+            try { prepararColecciones(); }
+            catch (RuntimeException e) { System.err.println("MongoDB: no se pudo preparar el esquema: " + e.getMessage()); }
+        }
+        return true;
     }
 
     private volatile boolean preparada;
@@ -51,8 +56,16 @@ public class MongoDocumentos {
     private synchronized void prepararColecciones() {
         if (preparada) return;
         MongoEsquema.VALIDADORES.forEach((coleccion, validador) -> {
-            if (!mongo.collectionExists(coleccion))
-                mongo.executeCommand(new Document("create", coleccion).append("validator", MongoEsquema.json(validador)));
+            if (!mongo.collectionExists(coleccion)) {
+                try {
+                    mongo.executeCommand(new Document("create", coleccion).append("validator", MongoEsquema.json(validador)));
+                } catch (RuntimeException sinValidador) {
+                    // Azure DocumentDB (y otros servicios compatibles) pueden no aceptar validadores $jsonSchema:
+                    // en ese caso la colección se crea sin validador.
+                    System.err.println("MongoDB: " + coleccion + " se crea sin validador ($jsonSchema no soportado): " + sinValidador.getMessage());
+                    mongo.executeCommand(new Document("create", coleccion));
+                }
+            }
         });
         for (String indice : MongoEsquema.INDICES) {
             try { mongo.executeCommand(MongoEsquema.json(indice)); }
