@@ -31,11 +31,12 @@ async function cargarMovimientos() {
   opciones($("p-plazo"), plazos, "id_plazo", (p) => `${p.descripcion} · vence ${p.vence} · ${p.estado}`, plazos.length ? "— No, solo presentar —" : "El caso no tiene plazos pendientes");
   opciones($("p-doc"), docs.filter((d) => d.estado !== "PRESENTADO"), "id_documento", (d) => `N.° ${d.id_documento} · ${d.tipo_documento} · ${d.titulo}`, docs.some((d) => d.estado !== "PRESENTADO") ? null : "No hay escritos por presentar");
   opciones($("r-pres"), pres, "id_presentacion", (p) => `N.° ${p.id_presentacion} · ${p.titulo} · ${p.fecha}`, "— Ninguna —");
-  const mongoBtn = (id) => id ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t3/archivos/${id.trim()}')">JSON</button>` : "—";
+  // [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas]
+  // const mongoBtn = (id) => id ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t3/archivos/${id.trim()}')">JSON</button>` : "—";
   tabla($("t-docs"), docs, [{ f: (d) => `<b>${d.id_documento}</b>` }, { f: (d) => esc(d.tipo_documento) }, { f: (d) => esc(d.titulo) }, { f: (d) => d.citas },
-    { f: (d) => estado(d.estado) }, { f: (d) => mongoBtn(d.archivo_mongo_id) }], "Sin escritos.");
+    { f: (d) => estado(d.estado) } /* , { f: (d) => mongoBtn(d.archivo_mongo_id) } */], "Sin escritos.");
   tabla($("t-res"), res, [{ f: (r) => `<b>${r.id_resolucion}</b> ${esc(r.nro_resolucion || "")}` }, { f: (r) => esc(r.tipo_resolucion) }, { f: (r) => esc(r.notificada) },
-    { f: (r) => esc(r.plazo || "—") }, { f: (r) => mongoBtn(r.archivo_mongo_id) }], "Sin resoluciones.");
+    { f: (r) => esc(r.plazo || "—") } /* , { f: (r) => mongoBtn(r.archivo_mongo_id) } */], "Sin resoluciones.");
 }
 
 async function calcularVence() {
@@ -51,7 +52,7 @@ $("r-con-plazo").addEventListener("change", () => { $("r-plazo").hidden = !$("r-
 function traza(div, titulo, lineas, mongoUrl, aviso, mensaje) {
   div.innerHTML = `<div class="aviso verde">✔ ${esc(mensaje)}</div>${aviso ? `<div class="aviso amarillo">${esc(aviso)}</div>` : ""}
     <div class="traza bd-traza"><div>COMMIT ✔ ${esc(titulo)}</div>${lineas.map((l) => `<div>${l}</div>`).join("")}</div>
-    ${mongoUrl ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('${mongoUrl}')">Ver el documento guardado en MongoDB</button>` : ""}`;
+    ${"" /* [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas] mongoUrl ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('${mongoUrl}')">Ver el documento guardado en MongoDB</button>` : "" */}`;
 }
 
 // ---------------- W11
@@ -109,7 +110,8 @@ $("w13").addEventListener("submit", async (e) => {
   } catch (err) { mostrarError(a, err); } finally { b.disabled = false; }
 });
 
-$("ver-exp").addEventListener("click", () => verMongo(`../api/panel/t2/casos/${caso()}/expediente-mongo`));
+// [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas]
+// $("ver-exp").addEventListener("click", () => verMongo(`../api/panel/t2/casos/${caso()}/expediente-mongo`));
 $("caso").addEventListener("change", cambiarCaso);
 
 (async () => {

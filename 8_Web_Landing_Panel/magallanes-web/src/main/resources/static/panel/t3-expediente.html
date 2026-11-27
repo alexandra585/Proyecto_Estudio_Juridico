@@ -21,7 +21,8 @@
     <div class="tarjeta">
       <div class="fila" style="margin-top:0;grid-template-columns:2fr 1fr;align-items:end">
         <div class="campo"><label for="caso">Caso *</label><select id="caso"></select><span class="bd">caso (estado = ACTIVO)</span></div>
-        <div><button class="btn btn-sec" type="button" id="ver-exp" style="padding:9px 14px">Ver expediente digital (MongoDB)</button></div>
+        <!-- [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas]
+        <div><button class="btn btn-sec" type="button" id="ver-exp" style="padding:9px 14px">Ver expediente digital (MongoDB)</button></div> -->
       </div>
     </div>
 
@@ -129,10 +130,10 @@
 
     <div class="grid-2">
       <div class="tarjeta"><h2>Escritos del caso</h2><div style="overflow-x:auto"><table class="tabla mini">
-        <thead><tr><th>N.°</th><th>Tipo</th><th>Título</th><th>Citas</th><th>Estado</th><th>MongoDB</th></tr></thead><tbody id="t-docs"></tbody></table></div>
+        <thead><tr><th>N.°</th><th>Tipo</th><th>Título</th><th>Citas</th><th>Estado</th><!-- <th>MongoDB</th> --></tr></thead><tbody id="t-docs"></tbody></table></div>
         <div class="bd">documento_legal ⋈ empleado · COUNT(documento_jurisprudencia)</div></div>
       <div class="tarjeta"><h2>Resoluciones y plazos</h2><div style="overflow-x:auto"><table class="tabla mini">
-        <thead><tr><th>N.°</th><th>Tipo</th><th>Notificada</th><th>Plazo</th><th>MongoDB</th></tr></thead><tbody id="t-res"></tbody></table></div>
+        <thead><tr><th>N.°</th><th>Tipo</th><th>Notificada</th><th>Plazo</th><!-- <th>MongoDB</th> --></tr></thead><tbody id="t-res"></tbody></table></div>
         <div class="bd">resolucion ⋈ entidad · vw_plazo_estado (PENDIENTE / VENCIDO / CUMPLIDO se calcula)</div></div>
     </div>
   </main>

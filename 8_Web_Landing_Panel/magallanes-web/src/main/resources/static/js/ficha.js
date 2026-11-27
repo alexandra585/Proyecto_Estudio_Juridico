@@ -77,7 +77,7 @@
                 `<div class="fx-ver">v${e(v.v)} · ${e(v.autor)} · ${v.fecha ? new Date(v.fecha).toLocaleDateString("es-PE") : ""}${v.origen ? " · " + e(v.origen) : ""}${v.observaciones ? " — " + e(v.observaciones) : ""}</div>`).join("")}</details>` : ""}
             </div>
             <div class="fx-doc-acc"><span class="estado e-${e(x.estado)}">${e(x.estado)}</span>
-            ${!cli && x.archivo_mongo_id ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t3/archivos/${e(String(x.archivo_mongo_id).trim())}')">JSON</button>` : ""}</div>
+            ${"" /* [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas] !cli && x.archivo_mongo_id ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t3/archivos/${e(String(x.archivo_mongo_id).trim())}')">JSON</button>` : "" */}</div>
           </div>`).join("") || '<div class="fx-vacio">Aún no hay documentos.</div>'}
       </section>
     </div>

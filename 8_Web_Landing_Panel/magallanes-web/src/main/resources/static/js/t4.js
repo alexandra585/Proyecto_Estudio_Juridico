@@ -122,7 +122,7 @@ async function cerrar(id, b) {
     const r = await postJSON(`../api/panel/t4/casos/${id}/cerrar`);
     traza($("r21"), "Transacción W21", [`<b>CASO_ETAPA</b> etapa actual cerrada + etapa «Cerrado»`, `<b>CASO</b> id_caso = ${r.idCaso} → CERRADO`,
       `<b>ENCUESTA</b> id_encuesta = ${r.idEncuesta} · enviada`, `<b>NOTIFICACION</b> ENVIO_ENCUESTA por WhatsApp · el cliente la responde en su portal`, `<b>MongoDB · encuestas</b> _id = ${esc(r.encuestaMongoId || "—")} · ENVIADA`],
-      r.aviso, r.mensaje, r.encuestaMongoId ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${r.idEncuesta}/mongo')">Ver el documento en MongoDB</button>` : "");
+      r.aviso, r.mensaje, "" /* [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas] r.encuestaMongoId ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${r.idEncuesta}/mongo')">Ver el documento en MongoDB</button>` : "" */);
     await Promise.all([cargarCerrar(), cargarEncuestas()]);
   } catch (err) { mostrarError(a, err); b.disabled = false; }
 }
@@ -136,8 +136,9 @@ async function cargarEncuestas() {
   const [pend, resp] = await Promise.all([api("../api/panel/t4/encuestas-pendientes"), api("../api/panel/t4/encuestas-respondidas")]);
   tabla($("t-enc-pend"), pend, [{ f: (e) => e.id_encuesta }, { f: (e) => esc(e.codigo_interno) }, { f: (e) => esc(e.cliente) }, { f: (e) => esc(e.enviada) }],
     "No hay encuestas esperando respuesta.");
-  tabla($("t-enc"), resp, [{ f: (e) => e.id_encuesta }, { f: (e) => esc(e.codigo_interno) }, { f: (e) => "★".repeat(e.calificacion || 0) }, { f: (e) => e.nps },
-    { f: (e) => `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${e.id_encuesta}/mongo')">JSON</button>` }], "Sin respuestas.");
+  tabla($("t-enc"), resp, [{ f: (e) => e.id_encuesta }, { f: (e) => esc(e.codigo_interno) }, { f: (e) => "★".repeat(e.calificacion || 0) }, { f: (e) => e.nps }
+    /* [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas]
+    , { f: (e) => `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t4/encuestas/${e.id_encuesta}/mongo')">JSON</button>` } */], "Sin respuestas.");
 }
 
 // ---------------- Resultados de las encuestas (promedio, NPS y comentarios con el nombre del cliente)

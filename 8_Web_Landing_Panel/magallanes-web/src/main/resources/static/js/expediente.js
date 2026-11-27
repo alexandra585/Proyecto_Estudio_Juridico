@@ -61,7 +61,7 @@ $("form-caso").addEventListener("submit", async (e) => {
         <div><b>CASO_ETAPA</b> etapa inicial abierta (fecha_fin NULL)</div>
         <div><b>MongoDB · expedientes</b> _id = ${esc(r.expedienteMongoId || "— (no disponible)")} → caso.expediente_mongo_id</div>
         <div><b>NOTIFICACION</b> ${r.avisoCliente ? "APERTURA_EXPEDIENTE al cliente (portal)" : "sin aviso al cliente (ejecute magallanes_montero_portal_firma.sql)"}</div></div>
-      ${r.expedienteMongoId ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t2/casos/${r.idCaso}/expediente-mongo')">Ver el documento guardado en MongoDB</button>` : ""}</div>`;
+      ${"" /* [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas] r.expedienteMongoId ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t2/casos/${r.idCaso}/expediente-mongo')">Ver el documento guardado en MongoDB</button>` : "" */}</div>`;
     actual = null;
     await Promise.all([cargarContratos(), cargarCasos()]);
   } catch (err) { mostrarError(a, err); }
@@ -73,7 +73,8 @@ async function cargarCasos() {
   tabla($("casos"), casos, [
     { f: (c) => `<b>${c.id_caso}</b>` }, { f: (c) => esc(c.codigo_interno) }, { f: (c) => esc(c.apertura) }, { f: (c) => esc(c.cliente) },
     { f: (c) => esc(c.materia) }, { f: (c) => esc(c.abogado) }, { f: (c) => c.partes }, { f: (c) => esc(c.etapa_actual || "—") }, { f: (c) => estado(c.estado) },
-    { f: (c) => c.expediente_mongo_id ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t2/casos/${c.id_caso}/expediente-mongo')">Ver JSON</button>` : "—" },
+    // [OCULTO PARA LA SUSTENTACIÓN · el documento se revisa en MongoDB Atlas]
+    // { f: (c) => c.expediente_mongo_id ? `<button class="btn btn-sec btn-mini" type="button" onclick="verMongo('../api/panel/t2/casos/${c.id_caso}/expediente-mongo')">Ver JSON</button>` : "—" },
   ], "Sin casos.");
 }
 

@@ -9,7 +9,9 @@
 (function () {
   var CLAVE = "mm-ver-campos-bd";
   var ver = false;                                   // por defecto: oculto (vista del cliente)
-  try { ver = localStorage.getItem(CLAVE) === "1"; } catch (e) { /* navegador sin almacenamiento */ }
+  // [OCULTO PARA LA SUSTENTACIÓN] Se quitó el botón: la pantalla queda siempre limpia (sin etiquetas tabla.columna).
+  // Para volver a activarlo, descomente esta línea y el bloque DOMContentLoaded de abajo.
+  // try { ver = localStorage.getItem(CLAVE) === "1"; } catch (e) { /* navegador sin almacenamiento */ }
   var raiz = document.documentElement;
 
   function aplicar() {
@@ -24,18 +26,18 @@
   }
   aplicar();
 
-  document.addEventListener("DOMContentLoaded", function () {
-    var b = document.getElementById("toggle-bd");
-    if (!b) {
-      b = document.createElement("button");
-      b.id = "toggle-bd"; b.type = "button"; b.className = "toggle-bd";
-      document.body.appendChild(b);
-    }
-    b.addEventListener("click", function () {
-      ver = !ver;
-      try { localStorage.setItem(CLAVE, ver ? "1" : "0"); } catch (e) { /* sin almacenamiento: solo esta pantalla */ }
-      aplicar();
-    });
-    aplicar();
-  });
+  // document.addEventListener("DOMContentLoaded", function () {
+  //   var b = document.getElementById("toggle-bd");
+  //   if (!b) {
+  //     b = document.createElement("button");
+  //     b.id = "toggle-bd"; b.type = "button"; b.className = "toggle-bd";
+  //     document.body.appendChild(b);
+  //   }
+  //   b.addEventListener("click", function () {
+  //     ver = !ver;
+  //     try { localStorage.setItem(CLAVE, ver ? "1" : "0"); } catch (e) { /* sin almacenamiento: solo esta pantalla */ }
+  //     aplicar();
+  //   });
+  //   aplicar();
+  // });
 })();
